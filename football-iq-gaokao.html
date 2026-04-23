@@ -1,0 +1,2972 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2026年全国足球统一考试</title>
+  <style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --paper: #f5f0e8;
+  --paper-dark: #e8e0d0;
+  --ink: #1a1a1a;
+  --ink-light: #444;
+  --red: #cc0000;
+  --red-dark: #990000;
+  --blue: #0033cc;
+  --border: #333;
+  --grid-line: rgba(0,0,0,0.06);
+  --sidebar-w: 52px;
+}
+
+html, body {
+  height: 100%;
+  font-family: "Songti SC", "SimSun", "Noto Serif CJK SC", serif;
+  background: #d4cfc5;
+  color: var(--ink);
+  -webkit-font-smoothing: auto;
+}
+
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ========== 试卷纸张 ========== */
+.paper {
+  max-width: 460px;
+  margin: 0 auto;
+  background: var(--paper);
+  min-height: 100vh;
+  padding: 0;
+  box-shadow: 2px 2px 20px rgba(0,0,0,0.15);
+  position: relative;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 31px, var(--grid-line) 31px, var(--grid-line) 32px);
+}
+
+/* ========== 左侧答题卡栏 ========== */
+.answer-sheet {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--sidebar-w);
+  z-index: 50;
+  background: var(--paper-dark);
+  border-right: 2px solid #bbb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 3px;
+  padding-top: calc(6px + env(safe-area-inset-top));
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.answer-sheet::-webkit-scrollbar { display: none; }
+
+.answer-sheet-title {
+  font-size: 10px;
+  color: #999;
+  letter-spacing: 1px;
+  writing-mode: vertical-rl;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.answer-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  width: 100%;
+  align-items: center;
+  min-height: 0;
+}
+
+.answer-dot {
+  width: 38px;
+  height: 28px;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
+  color: #bbb;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.4);
+}
+
+.answer-dot.filled {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+  font-weight: 700;
+}
+
+.answer-dot.current {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px 0;
+  border: 2px solid var(--red);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--red);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "Songti SC", "SimSun", serif;
+  letter-spacing: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:active {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* 手机端试卷给左侧答题卡让位 */
+@media (max-width: 539px) {
+  .paper { margin-left: var(--sidebar-w); max-width: none; width: calc(100vw - var(--sidebar-w)); }
+}
+@media (min-width: 540px) {
+  .answer-sheet { display: none; }
+  .paper { max-width: 460px; margin: 0 auto; }
+}
+
+/* ========== 试卷头部 ========== */
+.exam-header {
+  background: #fff;
+  border-bottom: 3px double var(--border);
+  padding: 16px 14px 12px;
+  text-align: center;
+  position: relative;
+}
+
+.exam-year {
+  font-size: clamp(11px, 3vw, 13px);
+  color: var(--ink-light);
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.exam-title {
+  font-size: clamp(17px, 5vw, 22px);
+  font-weight: 900;
+  color: var(--red);
+  letter-spacing: clamp(2px, 1vw, 4px);
+  margin-bottom: 2px;
+}
+
+.exam-subtitle {
+  font-size: clamp(11px, 3vw, 13px);
+  color: var(--ink-light);
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+
+.exam-stars {
+  color: var(--red);
+  font-size: 10px;
+  letter-spacing: 4px;
+  margin-bottom: 10px;
+}
+
+.exam-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: clamp(11px, 2.8vw, 13px);
+  color: var(--ink-light);
+  border-top: 1px solid #ddd;
+  padding-top: 8px;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.exam-info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.exam-info-item .blank {
+  display: inline-block;
+  width: clamp(55px, 18vw, 80px);
+  border-bottom: 1px solid var(--border);
+  height: 20px;
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: clamp(10px, 2.5vw, 12px);
+  color: var(--blue);
+}
+
+/* ========== 注意事项 ========== */
+.exam-notice {
+  padding: 10px 14px;
+  border-bottom: 1px solid #ddd;
+  font-size: clamp(13px, 3.2vw, 14px);
+  color: var(--ink-light);
+  line-height: 1.8;
+  background: rgba(255,255,255,0.5);
+}
+
+.exam-notice-title {
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+/* ========== 大题标题 ========== */
+.section-header {
+  padding: 12px 14px 8px;
+  font-size: clamp(15px, 4vw, 17px);
+  font-weight: 700;
+  color: var(--ink);
+  border-bottom: 1px solid #e0d8c8;
+}
+
+.section-header .section-score {
+  font-weight: 400;
+  font-size: clamp(12px, 3vw, 14px);
+  color: var(--ink-light);
+}
+
+/* ========== 题目 ========== */
+.question-item {
+  padding: 12px 14px;
+  border-bottom: 1px dotted #d0c8b8;
+  transition: background 0.2s;
+}
+
+.question-item.answered {
+  background: rgba(0, 51, 204, 0.03);
+}
+
+.question-num {
+  font-weight: 700;
+  font-size: clamp(15px, 4vw, 17px);
+  color: var(--ink);
+  margin-bottom: 4px;
+  line-height: 1.7;
+}
+
+.question-text {
+  font-size: clamp(15px, 4vw, 17px);
+  line-height: 1.7;
+  margin-bottom: 10px;
+  color: var(--ink);
+  text-indent: 0;
+}
+
+/* ========== 题目带插图布局 ========== */
+.question-item.has-figure {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.question-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-figure {
+  flex-shrink: 0;
+  width: clamp(80px, 25vw, 110px);
+  text-align: center;
+  padding-top: 4px;
+}
+
+.question-figure svg {
+  width: 100%;
+  height: auto;
+  opacity: 0.75;
+}
+
+.figure-label {
+  font-size: 10px;
+  color: #999;
+  margin-top: 4px;
+  font-family: "Songti SC", "SimSun", serif;
+}
+
+@media (max-width: 340px) {
+  .question-item.has-figure { flex-direction: column; }
+  .question-figure { width: 100%; max-width: 140px; margin: 0 auto 8px; }
+}
+
+/* ========== 选项 ========== */
+.options-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border: 1px solid transparent;
+}
+
+.option-item:active {
+  background: rgba(0,0,0,0.04);
+}
+
+.option-letter {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--border);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: "Times New Roman", serif;
+  color: var(--ink);
+  transition: all 0.15s;
+}
+
+.option-item.selected .option-letter {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.option-text {
+  font-size: clamp(14px, 3.6vw, 16px);
+  line-height: 1.6;
+  color: var(--ink);
+  padding-top: 1px;
+}
+
+/* ========== 进度条 ========== */
+.progress-strip {
+  height: 3px;
+  background: #e0d8c8;
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  z-index: 60;
+}
+
+@media (min-width: 540px) {
+  .progress-strip { left: 0; }
+}
+
+.progress-strip-fill {
+  height: 100%;
+  background: var(--red);
+  transition: width 0.4s ease;
+}
+
+/* 试卷底部留白 */
+#questions-container {
+  padding-bottom: 80px;
+}
+
+/* ========== 吸底交卷栏 ========== */
+.submit-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  z-index: 40;
+  background: #fff;
+  border-top: 2px solid var(--border);
+  padding: 10px 16px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 540px) {
+  .submit-bar { left: 0; max-width: 460px; margin: 0 auto; right: 0; }
+}
+
+/* ========== 抄答案绿色标记 ========== */
+.option-item.cheated .option-letter {
+  background: #2e7d32;
+  color: #fff;
+  border-color: #2e7d32;
+}
+
+.option-item.cheated {
+  border-color: rgba(46, 125, 50, 0.3);
+  background: rgba(46, 125, 50, 0.05);
+}
+
+.answer-dot.cheated {
+  background: #2e7d32;
+  color: #fff;
+  border-color: #2e7d32;
+  font-weight: 700;
+}
+
+/* ========== 抄学霸提示条 ========== */
+.cheat-hint {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #2e7d32, #43a047);
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 14px;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px 6px 0 0;
+  animation: hintSlideIn 0.3s ease;
+  font-family: -apple-system, sans-serif;
+}
+
+.cheat-hint::after {
+  content: '▸';
+  margin-left: auto;
+  font-size: 12px;
+}
+
+@keyframes hintSlideIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ========== 复查红色描边 ========== */
+.question-item.review-wrong {
+  border: 2px solid var(--red);
+  border-radius: 6px;
+  background: rgba(204, 0, 0, 0.04);
+  position: relative;
+}
+
+/* ========== 激励视频Mock弹窗 ========== */
+.reward-ad-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 300;
+  justify-content: center;
+  align-items: center;
+}
+.reward-ad-modal.show { display: flex; }
+
+.reward-ad-inner {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 20px 16px;
+  width: 280px;
+  text-align: center;
+}
+
+.reward-ad-label {
+  font-size: 10px;
+  color: #999;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.reward-ad-body {
+  padding: 20px 0;
+}
+
+.reward-ad-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.reward-ad-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+  font-family: -apple-system, sans-serif;
+}
+
+.reward-ad-countdown {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--red);
+  font-family: "Courier New", monospace;
+  line-height: 1;
+}
+
+.reward-ad-progress {
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.reward-ad-progress-fill {
+  height: 100%;
+  background: var(--red);
+  width: 0%;
+  transition: width 1s linear;
+}
+
+/* ========== 抄答案/复查弹窗 ========== */
+.cheat-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 250;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+.cheat-modal.show { display: flex; }
+
+.cheat-modal-inner {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 20px;
+  max-width: 300px;
+  width: 100%;
+  text-align: center;
+}
+
+.cheat-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+  font-family: -apple-system, sans-serif;
+}
+
+.cheat-modal-desc {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+  font-family: -apple-system, sans-serif;
+}
+
+.cheat-modal-btn {
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  font-family: -apple-system, sans-serif;
+}
+
+.cheat-modal-btn:active {
+  background: #1b5e20;
+}
+
+.cheat-modal-close {
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+  font-family: -apple-system, sans-serif;
+}
+
+/* ========== Toast ========== */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  font-size: 14px;
+  padding: 10px 24px;
+  border-radius: 4px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 100;
+  font-family: -apple-system, sans-serif;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ========== 结果页 — 成绩单 ========== */
+#page-result .paper {
+  padding-bottom: 40px;
+  margin-left: 0;
+  max-width: 460px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.result-header {
+  text-align: center;
+  padding: 24px 14px 16px;
+  border-bottom: 3px double var(--border);
+}
+
+.result-header .exam-year { margin-bottom: 4px; }
+
+.result-title {
+  font-size: clamp(18px, 5vw, 22px);
+  font-weight: 900;
+  color: var(--red);
+  letter-spacing: clamp(3px, 1.5vw, 6px);
+  margin-bottom: 4px;
+}
+
+/* 大红印章 */
+.stamp {
+  width: 120px;
+  height: 120px;
+  border: 4px solid var(--red);
+  border-radius: 50%;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  position: relative;
+  opacity: 0.85;
+}
+
+.stamp::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 2px solid var(--red);
+  border-radius: 50%;
+  opacity: 0.3;
+}
+
+.stamp-score { font-size: 42px; font-weight: 900; color: var(--red); line-height: 1; }
+.stamp-label { font-size: 12px; color: var(--red); letter-spacing: 2px; margin-top: 2px; }
+
+/* 段位 */
+.rank-section {
+  text-align: center;
+  padding: 14px 14px 16px;
+  border-bottom: 1px solid #e0d8c8;
+}
+
+.rank-badge {
+  display: inline-block;
+  padding: 5px 18px;
+  border: 2px solid var(--red);
+  font-size: clamp(16px, 4.5vw, 20px);
+  font-weight: 900;
+  color: var(--red);
+  letter-spacing: clamp(2px, 1vw, 4px);
+  margin-bottom: 8px;
+}
+
+.rank-tagline { font-size: clamp(13px, 3.5vw, 15px); color: var(--ink); font-style: italic; }
+
+.rank-desc {
+  font-size: clamp(12px, 3.2vw, 14px);
+  color: var(--ink-light);
+  line-height: 1.8;
+  padding: 14px;
+  border-bottom: 1px solid #e0d8c8;
+  text-indent: 2em;
+}
+
+/* 分类成绩表格 */
+.score-table { width: 100%; border-collapse: collapse; font-size: clamp(12px, 3vw, 14px); }
+.score-table th, .score-table td { border: 1px solid #ccc; padding: 8px 6px; text-align: center; }
+.score-table th { background: rgba(0,0,0,0.04); font-weight: 700; font-size: clamp(11px, 2.8vw, 13px); color: var(--ink); }
+.score-table td { color: var(--ink-light); }
+.score-table .score-value { font-weight: 700; color: var(--ink); font-size: clamp(14px, 3.5vw, 16px); }
+.score-table .score-perfect { color: var(--red); }
+
+/* 答题详情 */
+.detail-section { padding: 14px; border-bottom: 1px solid #e0d8c8; }
+.detail-title { font-size: clamp(13px, 3.5vw, 15px); font-weight: 700; color: var(--ink); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e0d8c8; }
+.detail-item { padding: 6px 0; border-bottom: 1px dotted #e0d8c8; font-size: clamp(11px, 3vw, 13px); line-height: 1.7; color: var(--ink-light); word-break: break-word; }
+.detail-item:last-child { border-bottom: none; }
+.detail-correct { color: var(--blue); }
+.detail-wrong { color: var(--red); }
+.detail-answer { font-size: clamp(10px, 2.5vw, 12px); color: #999; margin-top: 2px; }
+
+/* 底部按钮 */
+.result-footer {
+  padding: 16px 14px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+}
+
+.btn-retry {
+  flex: 1; padding: 11px 0; border: 1.5px solid #ccc; border-radius: 4px;
+  background: #fff; font-size: clamp(12px, 3.2vw, 14px);
+  font-family: "Songti SC", "SimSun", serif; color: var(--ink-light); cursor: pointer; letter-spacing: 2px;
+}
+
+.btn-share-card {
+  flex: 1; padding: 11px 0; border: 1.5px solid var(--red); border-radius: 4px;
+  background: #fff; font-size: clamp(12px, 3.2vw, 14px);
+  font-family: "Songti SC", "SimSun", serif; color: var(--red); cursor: pointer; letter-spacing: 2px;
+}
+
+/* 分享弹窗 */
+.share-modal {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6); z-index: 200;
+  justify-content: center; align-items: center; padding: 20px;
+}
+.share-modal.show { display: flex; }
+.share-modal-inner { background: #fff; border-radius: 8px; padding: 16px; max-width: 340px; width: 100%; text-align: center; }
+.share-modal-inner canvas { width: 100%; border-radius: 4px; margin-bottom: 12px; border: 1px solid #eee; }
+.btn-save {
+  width: 100%; padding: 11px 0; border: 2px solid var(--red); border-radius: 4px;
+  background: #fff; font-size: clamp(13px, 3.5vw, 15px); font-weight: 700;
+  font-family: "Songti SC", "SimSun", serif; color: var(--red); cursor: pointer; letter-spacing: 2px; margin-bottom: 8px;
+}
+.btn-close-modal { width: 100%; padding: 10px 0; border: none; background: transparent; font-size: 13px; color: #999; cursor: pointer; }
+
+/* ========== 动画 ========== */
+@keyframes stampIn {
+  0% { transform: rotate(-8deg) scale(2); opacity: 0; }
+  60% { transform: rotate(-8deg) scale(0.95); opacity: 0.9; }
+  100% { transform: rotate(-8deg) scale(1); opacity: 0.85; }
+}
+.stamp.animate { animation: stampIn 0.5s ease-out forwards; }
+
+/* ========== 响应式 ========== */
+@media (max-width: 375px) {
+  :root { --sidebar-w: 44px; }
+  .answer-dot { width: 32px; height: 24px; font-size: 10px; }
+  .stamp { width: 100px; height: 100px; }
+  .stamp-score { font-size: 36px; }
+  .stamp::after { inset: -6px; }
+  .submit-bar { padding: 8px 12px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+  .btn-submit { font-size: 13px; padding: 10px 0; }
+}
+
+@media (min-width: 540px) {
+  #page-result .paper { max-width: 460px; margin: 0 auto; }
+  .question-item { padding: 14px 20px; }
+  .section-header { padding: 14px 20px 8px; }
+  .exam-header { padding: 20px 20px 16px; }
+  .exam-notice { padding: 12px 20px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  :root { --sidebar-w: 36px; }
+  .answer-dot { height: 18px; font-size: 8px; }
+  .btn-submit { padding: 4px 0; font-size: 8px; }
+}
+  </style>
+</head>
+<body>
+
+  <div id="page-quiz" class="page active">
+    <div class="progress-strip">
+      <div id="progress-fill" class="progress-strip-fill" style="width:0%"></div>
+    </div>
+    <div class="answer-sheet">
+      <div class="answer-sheet-title">答题卡</div>
+      <div id="answer-grid" class="answer-grid"></div>
+    </div>
+    <div class="paper">
+      <div class="exam-header">
+        <div class="exam-year">2026年（全国卷）</div>
+        <div class="exam-title">全国足球统一考试</div>
+        <div class="exam-subtitle">足球学科 知识水平测试卷</div>
+        <div class="exam-stars">★ ★ ★ ★ ★</div>
+        <div class="exam-info">
+          <div class="exam-info-item">准考证号：<span class="blank" id="exam-id"></span></div>
+          <div class="exam-info-item">座位号：<span class="blank" id="seat-id"></span></div>
+        </div>
+      </div>
+      <div class="exam-notice">
+        <div class="exam-notice-title">注意事项：</div>
+        1. 本试卷共20小题，满分100分，考试时间不限。<br>
+        2. 每小题5分，共五个大题，每大题4小题。<br>
+        3. 请用手指在选项上作答，涂改无效。<br>
+        4. 考试期间禁止查阅懂球帝APP（开玩笑的）。
+      </div>
+      <div id="questions-container"></div>
+    </div>
+    <div class="submit-bar" id="submit-bar">
+      <button id="btn-submit" class="btn-submit" disabled>交 卷</button>
+    </div>
+  </div>
+
+  <div id="reward-ad-modal" class="reward-ad-modal">
+    <div class="reward-ad-inner">
+      <div class="reward-ad-label">广告</div>
+      <div class="reward-ad-body">
+        <div class="reward-ad-icon">📺</div>
+        <div class="reward-ad-text">正在加载激励视频...</div>
+        <div class="reward-ad-countdown" id="reward-countdown">3</div>
+      </div>
+      <div class="reward-ad-progress">
+        <div class="reward-ad-progress-fill" id="reward-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="cheat-modal" class="cheat-modal">
+    <div class="cheat-modal-inner">
+      <div class="cheat-modal-title" id="cheat-modal-title"></div>
+      <div class="cheat-modal-desc" id="cheat-modal-desc"></div>
+      <button class="cheat-modal-btn" id="cheat-modal-btn">看视频，抄答案</button>
+      <button class="cheat-modal-close" id="cheat-modal-close">算了，自己答</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <div id="page-result" class="page">
+    <div class="paper">
+      <div class="result-header">
+        <div class="exam-year">2026年全国足球统一考试</div>
+        <div class="result-title">成 绩 报 告 单</div>
+      </div>
+      <div class="stamp animate" id="result-stamp">
+        <div class="stamp-score" id="result-score"></div>
+        <div class="stamp-label">分</div>
+      </div>
+      <div class="rank-section">
+        <div class="rank-badge" id="result-rank"></div>
+        <div class="rank-tagline" id="result-tagline"></div>
+      </div>
+      <div class="rank-desc" id="result-desc"></div>
+      <table class="score-table">
+        <thead><tr><th>题型</th><th>得分</th><th>满分</th><th>正确率</th></tr></thead>
+        <tbody id="score-tbody"></tbody>
+      </table>
+      <div id="detail-container"></div>
+      <div class="result-footer">
+        <button id="btn-retry" class="btn-retry">重 考</button>
+        <button id="btn-share" class="btn-share-card">生成成绩单</button>
+      </div>
+    </div>
+    <div id="share-modal" class="share-modal">
+      <div class="share-modal-inner">
+        <canvas id="share-canvas"></canvas>
+        <button id="btn-save-card" class="btn-save">保存成绩单</button>
+        <button id="btn-close-modal" class="btn-close-modal">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+/**
+ * 足球智商测试题库
+ * 分类: rules(规则), history(历史), data(数据), tactics(战术), trivia(冷知识)
+ * figure: 可选，内联SVG线稿插图
+ */
+
+// ── 插图 SVG ──
+var FIGURES = {};
+
+// VAR 回放屏幕
+FIGURES[0] = '<svg viewBox="0 0 140 100" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><rect x="20" y="10" width="100" height="65" rx="3"/><rect x="25" y="15" width="90" height="50" rx="1" fill="none" stroke-dasharray="3 2"/><line x1="55" y1="82" x2="85" y2="82"/><line x1="70" y1="75" x2="70" y2="82"/><text x="70" y="44" text-anchor="middle" font-size="9" fill="#999" stroke="none">VAR</text><circle cx="108" cy="38" r="4" fill="none" stroke="#c00" stroke-width="1.5"/><line x1="105" y1="35" x2="111" y2="41" stroke="#c00" stroke-width="1.5"/></svg>';
+
+// 点球 — 球门正面 + 守门员 + 门线
+FIGURES[1] = '<svg viewBox="0 0 140 100" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><rect x="15" y="15" width="110" height="55" rx="2"/><line x1="15" y1="70" x2="125" y2="70" stroke="#333" stroke-width="2"/><text x="70" y="80" text-anchor="middle" font-size="7" fill="#999" stroke="none">← 门线 →</text><circle cx="70" cy="50" r="8"/><line x1="70" y1="42" x2="70" y2="35"/><line x1="62" y1="55" x2="56" y2="65"/><line x1="78" y1="55" x2="84" y2="65"/><line x1="62" y1="46" x2="52" y2="42"/><line x1="78" y1="46" x2="88" y2="42"/><circle cx="40" cy="88" r="5" fill="none"/><path d="M38 86 L42 86 L43 90 L37 90Z" fill="none"/></svg>';
+
+// 越位 — 进攻球员与防守线
+FIGURES[2] = '<svg viewBox="0 0 160 100" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><line x1="80" y1="5" x2="80" y2="95" stroke-dasharray="4 3" stroke="#c00"/><text x="80" y="98" text-anchor="middle" font-size="7" fill="#c00" stroke="none">越位线</text><circle cx="60" cy="35" r="6" fill="none" stroke="#333"/><line x1="60" y1="41" x2="60" y2="58"/><line x1="60" y1="58" x2="54" y2="72"/><line x1="60" y1="58" x2="66" y2="72"/><line x1="60" y1="48" x2="50" y2="44"/><line x1="60" y1="48" x2="70" y2="44"/><text x="60" y="82" text-anchor="middle" font-size="7" fill="#999" stroke="none">防守员</text><circle cx="100" cy="30" r="6" fill="none" stroke="#06c"/><line x1="100" y1="36" x2="100" y2="53"/><line x1="100" y1="53" x2="94" y2="67"/><line x1="100" y1="53" x2="106" y2="67"/><line x1="100" y1="43" x2="90" y2="38"/><line x1="100" y1="43" x2="115" y2="35"/><text x="100" y="78" text-anchor="middle" font-size="7" fill="#06c" stroke="none">进攻员</text><path d="M108 32 L115 35 L112 28" fill="none" stroke="#06c" stroke-width="1"/><text x="113" y="24" font-size="6" fill="#06c" stroke="none">手臂</text></svg>';
+
+// 换人牌
+FIGURES[3] = '<svg viewBox="0 0 120 100" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><rect x="20" y="8" width="35" height="50" rx="3" fill="none" stroke="#0a0"/><text x="37" y="38" text-anchor="middle" font-size="18" fill="#0a0" stroke="none">↑</text><rect x="65" y="8" width="35" height="50" rx="3" fill="none" stroke="#c00"/><text x="82" y="38" text-anchor="middle" font-size="18" fill="#c00" stroke="none">↓</text><text x="37" y="70" text-anchor="middle" font-size="7" fill="#999" stroke="none">换上</text><text x="82" y="70" text-anchor="middle" font-size="7" fill="#999" stroke="none">换下</text><text x="60" y="88" text-anchor="middle" font-size="8" fill="#666" stroke="none">第四官员换人牌</text></svg>';
+
+// 欧冠奖杯
+FIGURES[4] = '<svg viewBox="0 0 100 110" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><path d="M35 25 C25 25 15 35 18 50 C20 60 30 55 35 50" /><path d="M65 25 C75 25 85 35 82 50 C80 60 70 55 65 50"/><path d="M35 20 Q50 5 65 20 L65 55 Q50 75 35 55Z" fill="none"/><rect x="42" y="75" width="16" height="8" rx="1"/><rect x="35" y="83" width="30" height="5" rx="1"/><line x1="50" y1="88" x2="50" y2="95"/><rect x="38" y="95" width="24" height="6" rx="2"/><text x="50" y="107" text-anchor="middle" font-size="7" fill="#999" stroke="none">大耳朵杯</text></svg>';
+
+// 世界杯奖杯
+FIGURES[5] = '<svg viewBox="0 0 100 110" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><path d="M40 15 Q50 5 60 15"/><path d="M40 15 L38 55 Q50 70 62 55 L60 15"/><path d="M38 30 C25 28 20 40 30 48 C34 50 38 48 38 45"/><path d="M62 30 C75 28 80 40 70 48 C66 50 62 48 62 45"/><line x1="50" y1="68" x2="50" y2="78"/><ellipse cx="50" cy="80" rx="4" ry="2"/><rect x="38" y="82" width="24" height="5" rx="2"/><circle cx="50" cy="40" r="6" fill="none" stroke-dasharray="2 1.5"/><text x="50" y="100" text-anchor="middle" font-size="7" fill="#999" stroke="none">大力神杯</text></svg>';
+
+// 4-3-3 阵型
+FIGURES[15] = '<svg viewBox="0 0 140 110" fill="none" stroke="#555" stroke-width="1.2"><rect x="5" y="5" width="130" height="100" rx="2"/><line x1="70" y1="5" x2="70" y2="105" stroke-dasharray="3 2"/><circle cx="70" cy="55" r="12" fill="none" stroke-dasharray="3 2"/><text x="35" y="100" text-anchor="middle" font-size="7" fill="#999" stroke="none">4-3-3</text><text x="105" y="100" text-anchor="middle" font-size="7" fill="#999" stroke="none">4-2-3-1</text><circle cx="20" cy="85" r="4" fill="#ddd" stroke="#333"/><circle cx="30" cy="70" r="4" fill="#ddd" stroke="#333"/><circle cx="30" cy="40" r="4" fill="#ddd" stroke="#333"/><circle cx="20" cy="25" r="4" fill="#ddd" stroke="#333"/><circle cx="42" cy="40" r="4" fill="#ddd" stroke="#333"/><circle cx="42" cy="55" r="4" fill="#ddd" stroke="#333"/><circle cx="42" cy="70" r="4" fill="#ddd" stroke="#333"/><circle cx="58" cy="30" r="4" fill="#ddd" stroke="#333"/><circle cx="58" cy="55" r="4" fill="#ddd" stroke="#333"/><circle cx="58" cy="80" r="4" fill="#ddd" stroke="#333"/><circle cx="85" cy="85" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="95" cy="70" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="95" cy="40" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="85" cy="25" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="107" cy="65" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="107" cy="45" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="120" cy="30" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="120" cy="55" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="120" cy="80" r="4" fill="#b3d4fc" stroke="#06c"/><circle cx="130" cy="55" r="4" fill="#b3d4fc" stroke="#06c"/></svg>';
+
+// 足球构造 — 五边形+六边形
+FIGURES[17] = '<svg viewBox="0 0 120 120" fill="none" stroke="#555" stroke-width="1"><circle cx="60" cy="60" r="45"/><polygon points="60,25 72,38 68,53 52,53 48,38" fill="#ddd" stroke="#333" stroke-width="1.2"/><polygon points="72,38 88,38 90,53 78,60 68,53" fill="none"/><polygon points="48,38 32,38 30,53 42,60 52,53" fill="none"/><polygon points="68,53 78,60 75,77 60,82 45,77 42,60 52,53" fill="none"/><polygon points="75,77 90,77 95,62 90,53 78,60" fill="none"/><polygon points="45,77 30,77 25,62 30,53 42,60" fill="none"/><polygon points="60,82 75,77 72,92 60,98 48,92 45,77" fill="#ddd" stroke="#333" stroke-width="1.2"/><text x="60" y="115" text-anchor="middle" font-size="7" fill="#999" stroke="none">经典32块拼接</text></svg>';
+
+// 红牌
+FIGURES[18] = '<svg viewBox="0 0 100 100" fill="none" stroke="#555" stroke-width="1.2" stroke-linecap="round"><rect x="28" y="15" width="44" height="62" rx="4" fill="#fdd" stroke="#c00" stroke-width="2"/><text x="50" y="52" text-anchor="middle" font-size="28" fill="#c00" stroke="none" font-weight="bold">!</text><circle cx="50" cy="30" r="3" fill="#c00" stroke="none"/><text x="50" y="90" text-anchor="middle" font-size="8" fill="#999" stroke="none">红牌</text></svg>';
+
+var QUESTIONS = [
+  // ── 规则题 ──
+  {
+    category: 'rules',
+    tag: '规则达人',
+    text: 'VAR介入后，主裁判必须亲自去场边看回放吗？',
+    figure: 0,
+    options: [
+      { text: '必须亲自看', correct: false },
+      { text: '不一定，可以直接采纳VAR建议', correct: true },
+      { text: '只有红牌才需要亲自看', correct: false }
+    ]
+  },
+  {
+    category: 'rules',
+    tag: '规则达人',
+    text: '点球大战中，守门员扑点时双脚必须在门线上吗？',
+    figure: 1,
+    options: [
+      { text: '双脚都必须在线上', correct: false },
+      { text: '至少一只脚触线即可', correct: true },
+      { text: '没有限制，可以随意站位', correct: false }
+    ]
+  },
+  {
+    category: 'rules',
+    tag: '规则达人',
+    text: '越位判罚中，以下哪个身体部位不算越位？',
+    figure: 2,
+    options: [
+      { text: '手臂', correct: true },
+      { text: '头', correct: false },
+      { text: '膝盖', correct: false }
+    ]
+  },
+  {
+    category: 'rules',
+    tag: '规则达人',
+    text: '一场比赛中，一支球队最多可以换几个人？（常规90分钟，现行规则）',
+    figure: 3,
+    options: [
+      { text: '3人', correct: false },
+      { text: '5人', correct: true },
+      { text: '4人', correct: false }
+    ]
+  },
+  // ── 历史题 ──
+  {
+    category: 'history',
+    tag: '足球历史',
+    text: '哪支球队是第一支成功卫冕欧冠冠军的球队？',
+    figure: 4,
+    options: [
+      { text: 'AC米兰', correct: false },
+      { text: '皇家马德里', correct: true },
+      { text: '巴塞罗那', correct: false }
+    ]
+  },
+  {
+    category: 'history',
+    tag: '足球历史',
+    text: '世界杯历史上，哪个国家夺冠次数最多？',
+    figure: 5,
+    options: [
+      { text: '德国', correct: false },
+      { text: '意大利', correct: false },
+      { text: '巴西', correct: true }
+    ]
+  },
+  {
+    category: 'history',
+    tag: '足球历史',
+    text: '"伊斯坦布尔奇迹"发生在哪一年的欧冠决赛？',
+    options: [
+      { text: '2003年', correct: false },
+      { text: '2005年', correct: true },
+      { text: '2007年', correct: false }
+    ]
+  },
+  {
+    category: 'history',
+    tag: '足球历史',
+    text: '中国男足唯一一次打进世界杯决赛圈是哪一届？',
+    options: [
+      { text: '1998年法国', correct: false },
+      { text: '2002年韩日', correct: true },
+      { text: '2006年德国', correct: false }
+    ]
+  },
+  // ── 数据题 ──
+  {
+    category: 'data',
+    tag: '数据控',
+    text: '梅西职业生涯一共获得过几次金球奖？',
+    options: [
+      { text: '7次', correct: false },
+      { text: '8次', correct: true },
+      { text: '6次', correct: false }
+    ]
+  },
+  {
+    category: 'data',
+    tag: '数据控',
+    text: 'C罗职业生涯俱乐部+国家队总进球数大约是多少？',
+    options: [
+      { text: '约700球', correct: false },
+      { text: '约900球', correct: true },
+      { text: '约600球', correct: false }
+    ]
+  },
+  {
+    category: 'data',
+    tag: '数据控',
+    text: '英超单赛季进球纪录（38轮制）是多少球？',
+    options: [
+      { text: '31球', correct: false },
+      { text: '34球', correct: false },
+      { text: '32球（萨拉赫）', correct: true }
+    ]
+  },
+  {
+    category: 'data',
+    tag: '数据控',
+    text: '世界杯单届进球纪录保持者是谁？',
+    options: [
+      { text: '盖德·穆勒', correct: false },
+      { text: '朱斯特·方丹', correct: true },
+      { text: '罗纳尔多', correct: false }
+    ]
+  },
+  // ── 战术题 ──
+  {
+    category: 'tactics',
+    tag: '战术大师',
+    text: '"Tiki-Taka"传控战术最具代表性的球队是？',
+    options: [
+      { text: '皇家马德里', correct: false },
+      { text: '巴塞罗那', correct: true },
+      { text: '拜仁慕尼黑', correct: false }
+    ]
+  },
+  {
+    category: 'tactics',
+    tag: '战术大师',
+    text: '"catenaccio"（链式防守）起源于哪个国家？',
+    options: [
+      { text: '德国', correct: false },
+      { text: '意大利', correct: true },
+      { text: '阿根廷', correct: false }
+    ]
+  },
+  {
+    category: 'tactics',
+    tag: '战术大师',
+    text: '"False 9"（伪九号）战术中，中锋的主要职责是？',
+    options: [
+      { text: '站桩抢点', correct: false },
+      { text: '回撤拿球，为两翼创造空间', correct: true },
+      { text: '盯防对方后腰', correct: false }
+    ]
+  },
+  {
+    category: 'tactics',
+    tag: '战术大师',
+    text: '4-3-3和4-2-3-1阵型的核心区别在于？',
+    figure: 15,
+    options: [
+      { text: '后卫人数不同', correct: false },
+      { text: '中场结构不同，后者多一个前腰', correct: true },
+      { text: '前锋人数不同', correct: false }
+    ]
+  },
+  // ── 冷知识 ──
+  {
+    category: 'trivia',
+    tag: '冷知识王',
+    text: '梅西职业生涯一共吃过几张红牌？',
+    options: [
+      { text: '0张', correct: false },
+      { text: '3张', correct: true },
+      { text: '1张', correct: false }
+    ]
+  },
+  {
+    category: 'trivia',
+    tag: '冷知识王',
+    text: '足球比赛用球标准有多少块皮组成？（经典款）',
+    figure: 17,
+    options: [
+      { text: '32块', correct: true },
+      { text: '24块', correct: false },
+      { text: '28块', correct: false }
+    ]
+  },
+  {
+    category: 'trivia',
+    tag: '冷知识王',
+    text: '世界杯历史上最快的红牌出现在开场多久？',
+    figure: 18,
+    options: [
+      { text: '56秒', correct: true },
+      { text: '2分钟', correct: false },
+      { text: '30秒', correct: false }
+    ]
+  },
+  {
+    category: 'trivia',
+    tag: '冷知识王',
+    text: '哪位球员被称为"外星人"？',
+    options: [
+      { text: '齐达内', correct: false },
+      { text: '罗纳尔多（大罗）', correct: true },
+      { text: '罗纳尔迪尼奥', correct: false }
+    ]
+  }
+];
+
+var CATEGORIES = {
+  rules:   { name: '规则认知', label: '规则' },
+  history: { name: '历史知识', label: '历史' },
+  data:    { name: '数据记忆', label: '数据' },
+  tactics: { name: '战术理解', label: '战术' },
+  trivia:  { name: '冷知识储备', label: '冷知识' }
+};
+
+var CATEGORY_KEYS = ['rules', 'history', 'data', 'tactics', 'trivia'];
+  </script>
+  <script>
+/**
+ * 足球智商段位定义
+ */
+var RANKS = [
+  {
+    id: 'professor',
+    name: '足球教授',
+    minScore: 18,
+    color: '#D4AF37',
+    star: '穆里尼奥',
+    tagline: '你确定你不是穆里尼奥？',
+    description: '你对足球的理解已经超越了普通球迷的范畴。规则、历史、战术、数据，你样样精通。如果足球有博士学位，你早就拿到了。'
+  },
+  {
+    id: 'dongqiudi',
+    name: '懂球帝',
+    minScore: 14,
+    color: '#30B544',
+    star: '温格',
+    tagline: '解说席给你留了位置',
+    description: '你的足球知识储备相当扎实，朋友圈里你就是行走的足球百科。看球不只是看热闹，你总能说出点门道来。'
+  },
+  {
+    id: 'veteran',
+    name: '老球迷',
+    minScore: 10,
+    color: '#3B82F6',
+    star: '克洛普',
+    tagline: '看球没白看',
+    description: '多年的看球经历让你积累了不少足球知识，虽然有些细节可能记不太清，但大方向上你绝对不会搞错。'
+  },
+  {
+    id: 'casual',
+    name: '伪球迷',
+    minScore: 6,
+    color: '#F59E0B',
+    star: '贝克汉姆',
+    tagline: '建议多看比赛少刷短视频',
+    description: '你对足球有一定了解，但知识面还不够广。不过没关系，每个懂球帝都是从伪球迷开始的，多看比赛就好了。'
+  },
+  {
+    id: 'worldcup',
+    name: '世界杯限定球迷',
+    minScore: 0,
+    color: '#EF4444',
+    star: '你自己',
+    tagline: '四年出现一次？',
+    description: '你对足球的了解还停留在"知道有个运动叫足球"的阶段。但这不妨碍你享受足球的快乐，毕竟快乐才是最重要的。'
+  }
+];
+  </script>
+  <script>
+/**
+ * 足球智商测试 — 计分算法
+ */
+var Algorithm = (function () {
+
+  function run(selections) {
+    var total = QUESTIONS.length;
+    var correct = 0;
+    var categoryScores = {};
+
+    CATEGORY_KEYS.forEach(function (k) {
+      categoryScores[k] = { total: 0, correct: 0, pct: 0 };
+    });
+
+    QUESTIONS.forEach(function (q, i) {
+      var cat = q.category;
+      categoryScores[cat].total++;
+      if (selections[i] !== undefined) {
+        var opt = q.options[selections[i]];
+        if (opt && opt.correct) {
+          correct++;
+          categoryScores[cat].correct++;
+        }
+      }
+    });
+
+    CATEGORY_KEYS.forEach(function (k) {
+      var s = categoryScores[k];
+      s.pct = s.total > 0 ? Math.round(s.correct / s.total * 100) : 0;
+    });
+
+    var rank = RANKS[RANKS.length - 1];
+    for (var i = 0; i < RANKS.length; i++) {
+      if (correct >= RANKS[i].minScore) {
+        rank = RANKS[i];
+        break;
+      }
+    }
+
+    var pct = Math.round(correct / total * 100);
+
+    return {
+      correct: correct,
+      total: total,
+      pct: pct,
+      rank: rank,
+      categoryScores: categoryScores
+    };
+  }
+
+  return { run: run };
+})();
+  </script>
+  <script>
+/*
+ * UnifiedRewardSDK
+ *
+ * One SDK for both iOS and Android WebView rewarded video flow.
+ * - iOS   -> dongdianqiu (Taku style adRequest params)
+ * - Android -> dongqiudi (ToBid style adRequest params)
+ */
+(function (root) {
+  'use strict';
+
+  // 业务只需要改这里：统一内置配置（不再需要额外 params 文件）
+  var EMBEDDED_CONFIG = {
+    platform: 'auto', // auto | ios | android
+    sceneId: 'leagueCollect_14',
+    adRequest: {
+      ios: {
+        method: 'get',
+        urlMap: {
+          'test1-n.dongdianqiu.com': 'https://test-ap.dongdianqiu.com/plat/v3',
+          'beta-n.dongdianqiu.com': 'https://beta-ap.dongdianqiu.com/plat/v3',
+          'n.dongdianqiu.com': 'https://ap.dongdianqiu.com/plat/v3'
+        },
+        fallbackUrl: 'https://ap.dongdianqiu.com/plat/v3',
+        param: {
+          apname: 'DProApp',
+          apvc: '8.5.2',
+          os: 'ios',
+          platform: '1',
+          position: '0',
+          pgid: '1.15.2'
+        }
+      },
+      android: {
+        method: 'get',
+        urlMap: {
+          'test1-n.dongqiudi.com': 'https://test-ap.dongqiudi.com/plat/v3',
+          'beta-n.dongqiudi.com': 'https://beta-ap.dongqiudi.com/plat/v3',
+          'n.dongqiudi.com': 'https://ap.dongqiudi.com/plat/v3',
+          '10.18.7.0': 'https://beta-ap.dongqiudi.com/plat/v3'
+        },
+        fallbackUrl: 'https://ap.dongqiudi.com/plat/v3',
+        param: {
+          pgid: '1.15.2'
+        }
+      }
+    },
+    reward: {
+      reward_name: 'coin',
+      reward_amount: '1',
+      data: '',
+      pgid: '1.15.2'
+    },
+    behavior: {
+      callbackTimeout: 8000,
+      preloadCallbackTimeout: 12000,
+      showCallbackTimeout: 10000,
+      preloadAllowTimeout: false,
+      showAllowTimeoutAsSuccess: false,
+      bridgeDetectTimeout: 5000,
+      readyRetryTimeout: 8000,
+      readyRetryInterval: 300,
+      preloadMaxAge: 180000
+    }
+  };
+
+  var DEFAULTS = null;
+
+  function extend(target) {
+    var i;
+    var key;
+    var source;
+    target = target || {};
+    for (i = 1; i < arguments.length; i += 1) {
+      source = arguments[i] || {};
+      for (key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+    return target;
+  }
+
+  function clone(value) {
+    if (!value || typeof value !== 'object') return value;
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function isPositiveNumber(value) {
+    return typeof value === 'number' && isFinite(value) && value > 0;
+  }
+
+  function normalizeConfig(config) {
+    var input = config || {};
+    var merged = clone(EMBEDDED_CONFIG);
+
+    if (typeof input.platform === 'string' && input.platform) {
+      merged.platform = input.platform;
+    }
+    if (typeof input.sceneId === 'string' && input.sceneId) {
+      merged.sceneId = input.sceneId;
+    }
+    if (input.reward) {
+      merged.reward = extend({}, merged.reward, input.reward);
+    }
+    if (input.behavior) {
+      merged.behavior = extend({}, merged.behavior, input.behavior);
+    }
+    if (input.adRequest && input.adRequest.ios) {
+      merged.adRequest.ios = extend({}, merged.adRequest.ios, input.adRequest.ios);
+      merged.adRequest.ios.param = extend({}, EMBEDDED_CONFIG.adRequest.ios.param, input.adRequest.ios.param || {});
+      merged.adRequest.ios.urlMap = extend({}, EMBEDDED_CONFIG.adRequest.ios.urlMap, input.adRequest.ios.urlMap || {});
+    }
+    if (input.adRequest && input.adRequest.android) {
+      merged.adRequest.android = extend({}, merged.adRequest.android, input.adRequest.android);
+      merged.adRequest.android.param = extend({}, EMBEDDED_CONFIG.adRequest.android.param, input.adRequest.android.param || {});
+      merged.adRequest.android.urlMap = extend({}, EMBEDDED_CONFIG.adRequest.android.urlMap, input.adRequest.android.urlMap || {});
+    }
+
+    return merged;
+  }
+
+  function buildDefaultsFromConfig(config) {
+    var normalized = normalizeConfig(config);
+    return {
+      platform: normalized.platform || 'auto',
+      bridgeDetectTimeout: Number(normalized.behavior && normalized.behavior.bridgeDetectTimeout) || 5000,
+      callbackTimeout: Number(normalized.behavior && normalized.behavior.callbackTimeout) || 8000,
+      preloadCallbackTimeout: Number(normalized.behavior && normalized.behavior.preloadCallbackTimeout) || Number(normalized.behavior && normalized.behavior.callbackTimeout) || 12000,
+      showCallbackTimeout: Number(normalized.behavior && normalized.behavior.showCallbackTimeout) || Number(normalized.behavior && normalized.behavior.callbackTimeout) || 10000,
+      preloadAllowTimeout: !!(normalized.behavior && normalized.behavior.preloadAllowTimeout),
+      showAllowTimeoutAsSuccess: !!(normalized.behavior && normalized.behavior.showAllowTimeoutAsSuccess),
+      readyRetryTimeout: Number(normalized.behavior && normalized.behavior.readyRetryTimeout) || 8000,
+      readyRetryInterval: Number(normalized.behavior && normalized.behavior.readyRetryInterval) || 300,
+      preloadMaxAge: Number(normalized.behavior && normalized.behavior.preloadMaxAge) || 180000,
+      sceneId: normalized.sceneId || 'leagueCollect_14',
+      adRequest: {
+        ios: clone(normalized.adRequest.ios),
+        android: clone(normalized.adRequest.android)
+      },
+      reward: clone(normalized.reward),
+      onLog: null
+    };
+  }
+
+  if (!root.__UNIFIED_REWARD_CONFIG) {
+    root.__UNIFIED_REWARD_CONFIG = clone(EMBEDDED_CONFIG);
+  }
+  DEFAULTS = buildDefaultsFromConfig(root.__UNIFIED_REWARD_CONFIG);
+
+  function isFunction(fn) {
+    return typeof fn === 'function';
+  }
+
+  function createSdkError(code, message, detail) {
+    var error = new Error(message || code || 'unknown_error');
+    error.code = code || 'REWARD_UNKNOWN_ERROR';
+    if (typeof detail !== 'undefined') {
+      error.detail = detail;
+    }
+    return error;
+  }
+
+  function wrapSdkError(error, code, message, detail) {
+    var nextError;
+    if (error && error.code) {
+      if (typeof detail !== 'undefined' && typeof error.detail === 'undefined') {
+        error.detail = detail;
+      }
+      return error;
+    }
+
+    nextError = createSdkError(
+      code,
+      (error && error.message) ? error.message : (message || 'unknown_error'),
+      detail
+    );
+
+    if (error && error.stack) {
+      nextError.stack = error.stack;
+    }
+
+    return nextError;
+  }
+
+  function parseOptionsAndCallback(options, callback) {
+    var result = {
+      options: {},
+      callback: isFunction(callback) ? callback : function () {}
+    };
+
+    if (isFunction(options)) {
+      result.callback = options;
+      return result;
+    }
+
+    if (options && typeof options === 'object') {
+      result.options = options;
+      return result;
+    }
+
+    if (typeof options !== 'undefined' && options !== null) {
+      result.options = { timeout: options };
+    }
+
+    return result;
+  }
+
+  function safeJsonParse(value) {
+    if (typeof value !== 'string') return value;
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      return value;
+    }
+  }
+
+  function normalizeOrigin(origin) {
+    var normalized = (origin || 'topon').toString().trim().toLowerCase();
+    if (normalized === 'csj') normalized = 'jrtt';
+    if (['topon', 'gdt', 'jrtt', 'dqd', 'tobid'].indexOf(normalized) < 0) {
+      normalized = 'topon';
+    }
+    return normalized;
+  }
+
+  function unwrapResponse(response) {
+    var wrapped = response && response._responseWrapedByNative ? response._responseWrapedByNative : response;
+    return safeJsonParse(wrapped);
+  }
+
+  function findRewardedAdItem(body) {
+    var list = body && body.data;
+    var i;
+
+    if (Object.prototype.toString.call(list) !== '[object Array]') {
+      return null;
+    }
+
+    for (i = 0; i < list.length; i += 1) {
+      if (list[i] && list[i].ad_type === 'sdk_rewarded_video') {
+        return list[i];
+      }
+    }
+
+    return null;
+  }
+
+  function ensureBridgeConnector() {
+    if (root.connectWebViewJavascriptBridge) return;
+
+    root.connectWebViewJavascriptBridge = function (callback) {
+      var iframe;
+
+      if (root.WebViewJavascriptBridge) {
+        if (!root.WebViewJavascriptBridge._messageHandler && root.WebViewJavascriptBridge.init) {
+          root.WebViewJavascriptBridge.init(function () {});
+        }
+        callback(root.WebViewJavascriptBridge);
+        return;
+      }
+
+      if (root.$bridge && root.$bridge.callHandler) {
+        callback(root.$bridge);
+        return;
+      }
+
+      document.addEventListener('WebViewJavascriptBridgeReady', function () {
+        if (root.WebViewJavascriptBridge && !root.WebViewJavascriptBridge._messageHandler && root.WebViewJavascriptBridge.init) {
+          root.WebViewJavascriptBridge.init(function () {});
+        }
+        callback(root.WebViewJavascriptBridge || root.$bridge || null);
+      }, false);
+
+      if (root.WVJBCallbacks) {
+        root.WVJBCallbacks.push(callback);
+        return;
+      }
+
+      root.WVJBCallbacks = [callback];
+      iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = 'https://__bridge_loaded__';
+      document.documentElement.appendChild(iframe);
+      setTimeout(function () {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 0);
+    };
+  }
+
+  function detectPlatformByUA() {
+    var ua = (root.navigator && root.navigator.userAgent ? root.navigator.userAgent : '').toLowerCase();
+    if (/android/.test(ua)) return 'android';
+    if (/iphone|ipad|ipod|ios/.test(ua)) return 'ios';
+    return 'android';
+  }
+
+  function UnifiedRewardBridge(options, baseDefaults) {
+    var opts = options || {};
+    var defaults = baseDefaults || DEFAULTS;
+    this.options = extend({}, defaults, opts);
+    this.options.adRequest = {
+      ios: extend({}, clone(defaults.adRequest.ios), clone(opts.adRequest && opts.adRequest.ios || {})),
+      android: extend({}, clone(defaults.adRequest.android), clone(opts.adRequest && opts.adRequest.android || {}))
+    };
+    this.options.reward = extend({}, clone(defaults.reward), clone(opts.reward || {}));
+    this.currentPayload = null;
+    this.currentPlatform = null;
+    this.preloadedRecord = null;
+    this._disconnectRegistered = false;
+    this._disconnectListeners = [];
+  }
+
+  UnifiedRewardBridge.prototype.log = function (title, data) {
+    if (isFunction(this.options.onLog)) {
+      this.options.onLog(title, data);
+    }
+    if (root.console && root.console.log) {
+      root.console.log('[UnifiedRewardSDK] ' + title, data || '');
+    }
+  };
+
+  UnifiedRewardBridge.prototype.getPlatform = function (overridePlatform) {
+    var platform = overridePlatform || this.options.platform || 'auto';
+    if (platform === 'ios' || platform === 'android') {
+      return platform;
+    }
+    return detectPlatformByUA();
+  };
+
+  UnifiedRewardBridge.prototype.getBridge = function (options, callback) {
+    var parsed = parseOptionsAndCallback(options, callback);
+    var opts = parsed.options;
+    var cb = parsed.callback;
+    var done = false;
+    var timeout;
+    var timeoutMs = Number(opts.timeout);
+
+    if (!isPositiveNumber(timeoutMs)) {
+      timeoutMs = this.options.bridgeDetectTimeout;
+    }
+
+    ensureBridgeConnector();
+
+    timeout = setTimeout(function () {
+      if (done) return;
+      done = true;
+      cb(createSdkError('REWARD_BRIDGE_NOT_READY', '未检测到可用的 WebView bridge', {
+        timeout: timeoutMs
+      }));
+    }, timeoutMs);
+
+    root.connectWebViewJavascriptBridge(function (bridge) {
+      if (done) return;
+      done = true;
+      clearTimeout(timeout);
+
+      if (bridge && bridge.callHandler) {
+        cb(null, bridge);
+        return;
+      }
+
+      cb(createSdkError('REWARD_BRIDGE_NO_CALL_HANDLER', 'bridge 已就绪，但没有 callHandler'));
+    });
+  };
+
+  UnifiedRewardBridge.prototype.callHandler = function (name, data, callback, callOptions) {
+    var self = this;
+    var cb = isFunction(callback) ? callback : function () {};
+    var options = callOptions || {};
+    var timeoutMs = Number(options.timeout);
+    var allowTimeout = !!options.allowTimeout;
+
+    if (!isPositiveNumber(timeoutMs)) {
+      timeoutMs = self.options.callbackTimeout;
+    }
+
+    this.log('call ' + name, data);
+
+    this.getBridge(function (bridgeErr, bridge) {
+      var done = false;
+      var timer;
+
+      if (bridgeErr) {
+        cb(bridgeErr);
+        return;
+      }
+
+      timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        cb(null, null, {
+          timeout: true,
+          timeoutMs: timeoutMs,
+          allowTimeout: allowTimeout
+        });
+      }, timeoutMs);
+
+      try {
+        bridge.callHandler(name, data || {}, function (response) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          self.log(name + ' callback', response);
+          cb(null, response, { timeout: false, timeoutMs: timeoutMs, allowTimeout: allowTimeout });
+        });
+      } catch (error) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        cb(error);
+      }
+    });
+  };
+
+  UnifiedRewardBridge.prototype.detectBridge = function (options, callback) {
+    var parsed = parseOptionsAndCallback(options, callback);
+    this.getBridge(parsed.options, function (error) {
+      parsed.callback(error || null);
+    });
+  };
+
+  UnifiedRewardBridge.prototype.ensureReady = function (options, callback) {
+    var self = this;
+    var parsed = parseOptionsAndCallback(options, callback);
+    var opts = parsed.options;
+    var cb = parsed.callback;
+    var totalTimeout = Number(opts.timeout);
+    var retryInterval = Number(opts.interval);
+    var singleTimeout = Number(opts.singleTimeout);
+    var startedAt = Date.now();
+    var attempts = 0;
+    var done = false;
+
+    if (!isPositiveNumber(totalTimeout)) {
+      totalTimeout = this.options.readyRetryTimeout;
+    }
+    if (!isPositiveNumber(retryInterval)) {
+      retryInterval = this.options.readyRetryInterval;
+    }
+    if (!isPositiveNumber(singleTimeout)) {
+      singleTimeout = Math.min(this.options.bridgeDetectTimeout, Math.max(300, retryInterval));
+    }
+
+    function finish(error, detail) {
+      if (done) return;
+      done = true;
+      cb(error || null, detail || null);
+    }
+
+    function tryOnce(lastError) {
+      var elapsed = Date.now() - startedAt;
+      var remaining = totalTimeout - elapsed;
+      var nextTimeout;
+
+      if (remaining <= 0) {
+        finish(createSdkError('REWARD_BRIDGE_NOT_READY', 'bridge 在重试窗口内未就绪', {
+          timeout: totalTimeout,
+          interval: retryInterval,
+          attempts: attempts,
+          lastError: lastError ? lastError.message : ''
+        }), {
+          attempts: attempts,
+          elapsed: elapsed
+        });
+        return;
+      }
+
+      attempts += 1;
+      nextTimeout = Math.min(singleTimeout, remaining);
+
+      self.getBridge({ timeout: nextTimeout }, function (error) {
+        if (!error) {
+          finish(null, {
+            attempts: attempts,
+            elapsed: Date.now() - startedAt
+          });
+          return;
+        }
+
+        setTimeout(function () {
+          tryOnce(error);
+        }, retryInterval);
+      });
+    }
+
+    tryOnce(null);
+  };
+
+  UnifiedRewardBridge.prototype.resolveAdRequest = function (platform, options) {
+    var cfg = this.options.adRequest[platform] || {};
+    var reqOpts = options && options.adRequest ? options.adRequest : {};
+    var hostname = root.location && root.location.hostname ? root.location.hostname : '';
+    var finalParam = extend({}, cfg.param || {}, reqOpts.param || {});
+    var finalUrl = reqOpts.url || (cfg.urlMap && cfg.urlMap[hostname]) || cfg.fallbackUrl;
+    var pgid = (options && options.reward && options.reward.pgid) || this.options.reward.pgid || finalParam.pgid || '1.15.2';
+
+    finalParam.pgid = pgid;
+
+    if (platform === 'ios') {
+      finalParam.os = 'ios';
+      if (!finalParam.platform) finalParam.platform = '1';
+      if (!finalParam.position) finalParam.position = '0';
+    }
+
+    return {
+      method: (reqOpts.method || cfg.method || 'get').toLowerCase(),
+      url: finalUrl,
+      param: finalParam,
+      callback: reqOpts.callback || 'onUnifiedAdRequestDone'
+    };
+  };
+
+  UnifiedRewardBridge.prototype.buildPayloadFromAd = function (platform, adItem, options, adRequest) {
+    var rewardCfg = extend({}, this.options.reward, options && options.reward || {});
+    var adSource = adItem && adItem.ad_source ? adItem.ad_source : {};
+    var sdkId = adSource.sdk_position_id || adItem.sdk_id || rewardCfg.sdk_id || rewardCfg.sdkId;
+    var origin = normalizeOrigin(adItem.origin || adSource.sdk_origin || adSource.sdk_name || rewardCfg.origin || (platform === 'android' ? 'tobid' : 'topon'));
+    var sceneId = (options && options.sceneId) || rewardCfg.id || rewardCfg.relate_id || this.options.sceneId;
+    var pgid = rewardCfg.pgid || adItem.pgid || (adRequest && adRequest.param && adRequest.param.pgid) || '1.15.2';
+
+    if (!sdkId) {
+      throw createSdkError('REWARD_PAYLOAD_BUILD_FAILED', '广告配置缺少 sdk_id(ad_source.sdk_position_id)');
+    }
+
+    if (platform === 'ios') {
+      return {
+        id: sceneId,
+        relate_id: sceneId,
+        sdk_id: sdkId,
+        sdkId: sdkId,
+        origin: origin,
+        platform: origin,
+        reward_name: rewardCfg.reward_name || '',
+        reward_amount: rewardCfg.reward_amount || '',
+        data: typeof rewardCfg.data === 'undefined' ? '' : rewardCfg.data,
+        imp_mon_arr: Array.isArray(adItem.imp_mon_arr) ? adItem.imp_mon_arr : [],
+        click_mon_arr: Array.isArray(adItem.click_mon_arr) ? adItem.click_mon_arr : [],
+        pgid: pgid
+      };
+    }
+
+    return {
+      origin: origin,
+      sdk_id: sdkId,
+      sdkId: sdkId,
+      imp_mon_arr: Array.isArray(adItem.imp_mon_arr) ? adItem.imp_mon_arr : [],
+      click_mon_arr: Array.isArray(adItem.click_mon_arr) ? adItem.click_mon_arr : [],
+      ct: '',
+      pgid: pgid
+    };
+  };
+
+  UnifiedRewardBridge.prototype.setPayload = function (payload) {
+    this.currentPayload = extend({}, payload || {});
+    return this.currentPayload;
+  };
+
+  UnifiedRewardBridge.prototype.getPayload = function () {
+    return this.currentPayload;
+  };
+
+  UnifiedRewardBridge.prototype.setPreloadedPayload = function (payload, platform) {
+    var savedPayload;
+
+    if (!payload) {
+      return null;
+    }
+
+    savedPayload = extend({}, payload);
+    this.setPayload(savedPayload);
+    this.preloadedRecord = {
+      payload: savedPayload,
+      platform: platform || this.currentPlatform || this.getPlatform(),
+      createdAt: Date.now()
+    };
+
+    if (this.preloadedRecord.platform) {
+      this.currentPlatform = this.preloadedRecord.platform;
+    }
+
+    return {
+      payload: extend({}, this.preloadedRecord.payload),
+      platform: this.preloadedRecord.platform,
+      createdAt: this.preloadedRecord.createdAt
+    };
+  };
+
+  UnifiedRewardBridge.prototype.clearPreloadedPayload = function () {
+    this.preloadedRecord = null;
+  };
+
+  UnifiedRewardBridge.prototype.hasFreshPreloadedPayload = function (maxAge) {
+    var record = this.preloadedRecord;
+    var finalMaxAge = Number(maxAge);
+
+    if (!record || !record.payload) {
+      return false;
+    }
+
+    if (!isPositiveNumber(finalMaxAge)) {
+      finalMaxAge = this.options.preloadMaxAge;
+    }
+
+    if (!isPositiveNumber(finalMaxAge)) {
+      return true;
+    }
+
+    return Date.now() - record.createdAt <= finalMaxAge;
+  };
+
+  UnifiedRewardBridge.prototype.consumePreloadedPayload = function (options) {
+    var opts = options || {};
+    var keep = !!opts.keep;
+    var finalMaxAge = typeof opts.maxAge === 'undefined' ? undefined : Number(opts.maxAge);
+    var payload;
+
+    if (!this.hasFreshPreloadedPayload(finalMaxAge)) {
+      this.clearPreloadedPayload();
+      return null;
+    }
+
+    payload = extend({}, this.preloadedRecord.payload);
+    this.setPayload(payload);
+    if (this.preloadedRecord.platform) {
+      this.currentPlatform = this.preloadedRecord.platform;
+    }
+
+    if (!keep) {
+      this.clearPreloadedPayload();
+    }
+
+    return payload;
+  };
+
+  UnifiedRewardBridge.prototype.requestAd = function (options, callback) {
+    var self = this;
+    var cb = callback;
+    var opts = options || {};
+    var platform;
+    var requestData;
+
+    if (isFunction(options)) {
+      cb = options;
+      opts = {};
+    }
+
+    platform = this.getPlatform(opts.platform);
+    this.currentPlatform = platform;
+    requestData = this.resolveAdRequest(platform, opts);
+
+    this.callHandler('adRequest', requestData, function (err, response, meta) {
+      var body;
+      var adItem;
+      var payload;
+
+      if (err) {
+        if (isFunction(cb)) cb(wrapSdkError(err, 'REWARD_AD_REQUEST_CALL_FAILED', err.message, {
+          requestData: requestData
+        }));
+        return;
+      }
+      if (meta && meta.timeout) {
+        if (isFunction(cb)) cb(createSdkError('REWARD_AD_REQUEST_TIMEOUT', 'adRequest 回调超时', {
+          requestData: requestData
+        }));
+        return;
+      }
+
+      body = unwrapResponse(response);
+      self.log('adRequest body', body);
+
+      if (!body || typeof body !== 'object') {
+        if (isFunction(cb)) cb(createSdkError('REWARD_AD_REQUEST_BAD_BODY', 'adRequest 返回体为空或格式错误', {
+          response: response
+        }));
+        return;
+      }
+
+      if (typeof body.code !== 'undefined' && Number(body.code) !== 0) {
+        if (isFunction(cb)) cb(createSdkError('REWARD_AD_REQUEST_CODE_ERROR', 'adRequest code=' + body.code, {
+          code: body.code,
+          body: body
+        }));
+        return;
+      }
+
+      adItem = findRewardedAdItem(body);
+      if (!adItem) {
+        if (isFunction(cb)) cb(createSdkError('REWARD_AD_ITEM_NOT_FOUND', 'adRequest 未返回 sdk_rewarded_video 广告位', {
+          body: body
+        }));
+        return;
+      }
+
+      try {
+        payload = self.buildPayloadFromAd(platform, adItem, opts, requestData);
+      } catch (buildErr) {
+        if (isFunction(cb)) cb(wrapSdkError(buildErr, 'REWARD_PAYLOAD_BUILD_FAILED', buildErr.message, {
+          body: body,
+          adItem: adItem
+        }));
+        return;
+      }
+
+      self.setPayload(payload);
+      if (isFunction(cb)) cb(null, payload, {
+        platform: platform,
+        adRequestResponse: response,
+        adRequestBody: body,
+        adRequestData: requestData
+      });
+    });
+  };
+
+  UnifiedRewardBridge.prototype.preload = function (payloadOrOptions, callback) {
+    var self = this;
+    var cb = callback;
+    var payload = payloadOrOptions;
+
+    if (isFunction(payloadOrOptions)) {
+      cb = payloadOrOptions;
+      payload = null;
+    }
+
+    if (!payload) {
+      payload = this.currentPayload;
+    }
+
+    if (!payload) {
+      if (isFunction(cb)) cb(createSdkError('REWARD_PAYLOAD_MISSING', '缺少可用 payload，请先 requestAd'));
+      return;
+    }
+
+    this.setPayload(payload);
+    this.callHandler('preLoadVideo', payload, function (err, response, meta) {
+      if (err) {
+        if (isFunction(cb)) cb(wrapSdkError(err, 'REWARD_PRELOAD_FAILED', err.message, {
+          payload: payload
+        }));
+        return;
+      }
+
+      if (meta && meta.timeout && !self.options.preloadAllowTimeout) {
+        if (isFunction(cb)) cb(createSdkError('REWARD_PRELOAD_TIMEOUT', 'preLoadVideo 回调超时', {
+          payload: payload,
+          timeoutMs: meta.timeoutMs
+        }));
+        return;
+      }
+
+      self.setPreloadedPayload(payload);
+      if (isFunction(cb)) cb(null, response, extend({}, meta, {
+        timeoutHandled: !!(meta && meta.timeout),
+        timeoutAsSuccess: !!(meta && meta.timeout && self.options.preloadAllowTimeout)
+      }));
+    }, {
+      timeout: self.options.preloadCallbackTimeout,
+      allowTimeout: !!self.options.preloadAllowTimeout
+    });
+  };
+
+  UnifiedRewardBridge.prototype.buildShowPayload = function (payload, options) {
+    var platform = this.getPlatform(options && options.platform || this.currentPlatform);
+    var sceneId = (options && options.sceneId) || this.options.sceneId;
+
+    if (platform === 'ios') {
+      return extend({}, payload, {
+        id: payload.id || sceneId,
+        relate_id: payload.relate_id || payload.id || sceneId
+      });
+    }
+
+    return extend({
+      id: sceneId,
+      data: {}
+    }, payload);
+  };
+
+  UnifiedRewardBridge.prototype.show = function (payloadOrOptions, callback) {
+    var cb = callback;
+    var payload = payloadOrOptions;
+
+    if (isFunction(payloadOrOptions)) {
+      cb = payloadOrOptions;
+      payload = null;
+    }
+
+    if (!payload || (payload && !payload.sdk_id && !payload.sdkId)) {
+      payload = this.currentPayload;
+    }
+
+    if (!payload) {
+      if (isFunction(cb)) cb(createSdkError('REWARD_PAYLOAD_MISSING', '缺少可用 payload，请先 requestAd/preload'));
+      return;
+    }
+
+    payload = this.buildShowPayload(payload, {});
+    this.setPayload(payload);
+    this.callHandler('connectVideo', payload, function (err, response, meta) {
+      if (err) {
+        if (isFunction(cb)) cb(wrapSdkError(err, 'REWARD_SHOW_FAILED', err.message, {
+          payload: payload
+        }));
+        return;
+      }
+
+      if (meta && meta.timeout && !this.options.showAllowTimeoutAsSuccess) {
+        if (isFunction(cb)) cb(createSdkError('REWARD_SHOW_TIMEOUT', 'connectVideo 回调超时', {
+          payload: payload,
+          timeoutMs: meta.timeoutMs
+        }));
+        return;
+      }
+
+      if (isFunction(cb)) cb(null, response, extend({}, meta, {
+        timeoutHandled: !!(meta && meta.timeout),
+        timeoutAsSuccess: !!(meta && meta.timeout && this.options.showAllowTimeoutAsSuccess)
+      }));
+    }.bind(this), {
+      timeout: this.options.showCallbackTimeout,
+      allowTimeout: !!this.options.showAllowTimeoutAsSuccess
+    });
+  };
+
+  UnifiedRewardBridge.prototype.requestAndPreload = function (options, callback) {
+    var self = this;
+    var cb = callback;
+    var opts = options || {};
+
+    if (isFunction(options)) {
+      cb = options;
+      opts = {};
+    }
+
+    this.requestAd(opts, function (err, payload, detail) {
+      if (err) {
+        if (isFunction(cb)) cb(err);
+        return;
+      }
+
+      self.preload(payload, function (preErr, preResp, preMeta) {
+        if (preErr) {
+          if (isFunction(cb)) cb(preErr);
+          return;
+        }
+
+        self.setPreloadedPayload(payload, detail && detail.platform);
+        if (isFunction(cb)) {
+          cb(null, payload, {
+            platform: detail.platform,
+            adRequest: detail,
+            preloadResponse: preResp,
+            preloadMeta: preMeta
+          });
+        }
+      });
+    });
+  };
+
+  UnifiedRewardBridge.prototype.requestPreloadAndShow = function (options, callback) {
+    var self = this;
+    var cb = callback;
+    var opts = options || {};
+
+    if (isFunction(options)) {
+      cb = options;
+      opts = {};
+    }
+
+    this.requestAndPreload(opts, function (err, payload, detail) {
+      if (err) {
+        if (isFunction(cb)) cb(err);
+        return;
+      }
+
+      self.show(payload, function (showErr, showResp, showMeta) {
+        if (isFunction(cb)) {
+          cb(showErr || null, {
+            platform: detail.platform,
+            payload: payload,
+            adRequest: detail.adRequest,
+            preloadResponse: detail.preloadResponse,
+            preloadMeta: detail.preloadMeta,
+            showResponse: showResp,
+            showMeta: showMeta
+          });
+        }
+      });
+    });
+  };
+
+  UnifiedRewardBridge.prototype.showWithPreloadedOrRequest = function (options, callback) {
+    var self = this;
+    var cb = callback;
+    var opts = options || {};
+    var cachedPayload;
+
+    if (isFunction(options)) {
+      cb = options;
+      opts = {};
+    }
+
+    cachedPayload = this.consumePreloadedPayload({
+      maxAge: opts.maxAge,
+      keep: !!opts.keepPreloaded
+    });
+
+    if (cachedPayload) {
+      this.show(cachedPayload, function (showErr, showResp, showMeta) {
+        if (isFunction(cb)) {
+          cb(showErr || null, {
+            fromCache: true,
+            payload: cachedPayload,
+            showResponse: showResp,
+            showMeta: showMeta
+          });
+        }
+      });
+      return;
+    }
+
+    this.requestAndPreload(opts, function (err, payload, detail) {
+      if (err) {
+        if (isFunction(cb)) cb(err);
+        return;
+      }
+
+      self.show(payload, function (showErr, showResp, showMeta) {
+        if (isFunction(cb)) {
+          cb(showErr || null, {
+            fromCache: false,
+            platform: detail.platform,
+            payload: payload,
+            adRequest: detail.adRequest,
+            preloadResponse: detail.preloadResponse,
+            preloadMeta: detail.preloadMeta,
+            showResponse: showResp,
+            showMeta: showMeta
+          });
+        }
+      });
+    });
+  };
+
+  UnifiedRewardBridge.prototype.onDisconnectVideo = function (listener, callback) {
+    var self = this;
+
+    if (isFunction(listener)) {
+      this._disconnectListeners.push(listener);
+    }
+
+    if (this._disconnectRegistered) {
+      if (isFunction(callback)) callback(null);
+      return;
+    }
+
+    this.getBridge(function (error, bridge) {
+      if (error) {
+        if (isFunction(callback)) callback(error);
+        return;
+      }
+
+      if (!bridge.registerHandler) {
+        if (isFunction(callback)) {
+          callback(createSdkError('REWARD_DISCONNECT_HANDLER_UNSUPPORTED', 'bridge 不支持 registerHandler，无法监听 disConnectVideo'));
+        }
+        return;
+      }
+
+      bridge.registerHandler('disConnectVideo', function (cbData, responseCallback) {
+        var i;
+        self.log('receive disConnectVideo', cbData);
+
+        for (i = 0; i < self._disconnectListeners.length; i += 1) {
+          try {
+            self._disconnectListeners[i](cbData || {});
+          } catch (listenerError) {
+            self.log('disConnectVideo listener error', { message: listenerError.message });
+          }
+        }
+
+        if (isFunction(responseCallback)) {
+          responseCallback({ ok: true });
+        }
+      });
+
+      self._disconnectRegistered = true;
+      if (isFunction(callback)) callback(null);
+    });
+  };
+
+  root.UnifiedRewardSDK = {
+    create: function (options) {
+      var runtimeConfig = normalizeConfig(root.__UNIFIED_REWARD_CONFIG || EMBEDDED_CONFIG);
+      var runtimeDefaults = buildDefaultsFromConfig(runtimeConfig);
+      return new UnifiedRewardBridge(options, runtimeDefaults);
+    },
+    Constructor: UnifiedRewardBridge,
+    utils: {
+      detectPlatformByUA: detectPlatformByUA,
+      normalizeOrigin: normalizeOrigin,
+      createSdkError: createSdkError,
+      getEmbeddedConfig: function () {
+        return clone(EMBEDDED_CONFIG);
+      }
+    }
+  };
+})(window);
+  </script>
+  <script>
+/**
+ * 激励视频统一接入层
+ * 真实SDK可用时走UnifiedRewardSDK，否则降级mock倒计时
+ */
+(function (root) {
+  'use strict';
+
+  var sdkInstance = null;
+  var sdkReady = false;
+
+  function initSdk() {
+    if (!root.UnifiedRewardSDK) {
+      console.warn('[RewardAd] UnifiedRewardSDK not found, will use mock');
+      return;
+    }
+
+    root.__UNIFIED_REWARD_CONFIG = {
+      platform: 'auto',
+      sceneId: 'footballIQ_gaokao',
+      behavior: {
+        callbackTimeout: 8000,
+        preloadCallbackTimeout: 12000,
+        showCallbackTimeout: 10000,
+        preloadAllowTimeout: true,
+        showAllowTimeoutAsSuccess: true,
+        bridgeDetectTimeout: 5000,
+        readyRetryTimeout: 8000,
+        readyRetryInterval: 300
+      },
+      reward: {
+        reward_name: 'cheat_answer',
+        reward_amount: '1',
+        data: JSON.stringify({ entry: 'footballIQ_gaokao', play_trigger: 'cheat_or_review' })
+      }
+    };
+
+    sdkInstance = root.UnifiedRewardSDK.create({
+      onLog: function (title, data) {
+        console.log('[RewardAd]', title, data);
+      }
+    });
+
+    sdkInstance.ensureReady(function (readyErr) {
+      if (readyErr) {
+        console.warn('[RewardAd] bridge not ready, will use mock:', readyErr.message);
+        return;
+      }
+      sdkReady = true;
+      console.log('[RewardAd] bridge ready, preloading...');
+      sdkInstance.requestAndPreload(function (preErr) {
+        if (preErr) console.warn('[RewardAd] preload fail:', preErr.message);
+        else console.log('[RewardAd] preload done');
+      });
+    });
+  }
+
+  function showRewardVideo(onSuccess, onFail) {
+    if (sdkReady && sdkInstance) {
+      sdkInstance.showWithPreloadedOrRequest(function (err, detail) {
+        if (err) {
+          console.warn('[RewardAd] show fail:', err.message);
+          if (onFail) onFail(err);
+          else if (onSuccess) onSuccess();
+          return;
+        }
+        console.log('[RewardAd] show success', detail);
+        if (onSuccess) onSuccess();
+        sdkInstance.requestAndPreload(function () {});
+      });
+    } else {
+      showMockAd(onSuccess);
+    }
+  }
+
+  function showMockAd(callback) {
+    var modal = document.getElementById('reward-ad-modal');
+    var countdown = document.getElementById('reward-countdown');
+    var progressFill = document.getElementById('reward-progress-fill');
+
+    modal.classList.add('show');
+    progressFill.style.transition = 'none';
+    progressFill.style.width = '0%';
+    var count = 3;
+    countdown.textContent = count;
+
+    void progressFill.offsetWidth;
+    progressFill.style.transition = 'width 1s linear';
+
+    var timer = setInterval(function () {
+      count--;
+      progressFill.style.width = ((3 - count) / 3 * 100) + '%';
+      if (count > 0) {
+        countdown.textContent = count;
+      } else {
+        clearInterval(timer);
+        countdown.textContent = '✓';
+        setTimeout(function () {
+          modal.classList.remove('show');
+          progressFill.style.width = '0%';
+          if (callback) callback();
+        }, 400);
+      }
+    }, 1000);
+  }
+
+  initSdk();
+
+  root.RewardAd = {
+    show: showRewardVideo,
+    isReady: function () { return sdkReady; }
+  };
+
+})(window);
+  </script>
+  <script>
+(function () {
+
+  var TOTAL = QUESTIONS.length;
+  var selections = {};
+  var cheatedQuestions = {};
+  var reviewUsed = false;
+  var cheatHintTimer = null;
+  var LETTERS = ['A', 'B', 'C', 'D'];
+
+  var pageQuiz = document.getElementById('page-quiz');
+  var pageResult = document.getElementById('page-result');
+  var progressFill = document.getElementById('progress-fill');
+  var questionsContainer = document.getElementById('questions-container');
+  var answerGrid = document.getElementById('answer-grid');
+  var btnSubmit = document.getElementById('btn-submit');
+  var submitBar = document.getElementById('submit-bar');
+  var toastEl = document.getElementById('toast');
+
+  var cheatModal = document.getElementById('cheat-modal');
+  var cheatModalTitle = document.getElementById('cheat-modal-title');
+  var cheatModalDesc = document.getElementById('cheat-modal-desc');
+  var cheatModalBtn = document.getElementById('cheat-modal-btn');
+  var cheatModalClose = document.getElementById('cheat-modal-close');
+
+  document.getElementById('exam-id').textContent = '2026' + Math.floor(10000000 + Math.random() * 90000000);
+  document.getElementById('seat-id').textContent = Math.floor(1 + Math.random() * 30);
+
+  init();
+
+  function init() {
+    renderQuestions();
+    renderAnswerGrid();
+    updateProgress();
+  }
+
+  // ── 激励视频（委托给 reward-sdk.js） ──
+  function showRewardAd(callback) {
+    RewardAd.show(callback);
+  }
+
+  // ── 填充抄的答案（绿色） ──
+  function cheatFillAnswer(qi) {
+    var q = QUESTIONS[qi];
+    var correctIdx = q.options.findIndex(function (o) { return o.correct; });
+    selections[qi] = correctIdx;
+    cheatedQuestions[qi] = true;
+
+    var card = questionsContainer.querySelector('[data-qi="' + qi + '"].question-item');
+    card.classList.add('answered');
+    card.querySelectorAll('.option-item').forEach(function (el) {
+      var oi = parseInt(el.getAttribute('data-oi'));
+      el.classList.remove('selected', 'cheated');
+      if (oi === correctIdx) el.classList.add('cheated');
+    });
+
+    // 移除提示条
+    var hint = card.querySelector('.cheat-hint');
+    if (hint) hint.remove();
+
+    updateProgress();
+    updateAnswerGrid();
+  }
+
+  // ── 抄答案/复查弹窗逻辑 ──
+  var pendingCheatCallback = null;
+  var pendingCloseCallback = null;
+
+  function showCheatModal(title, desc, btnText, callback, closeText, closeCallback) {
+    cheatModalTitle.textContent = title;
+    cheatModalDesc.textContent = desc;
+    cheatModalBtn.textContent = btnText;
+    cheatModalClose.textContent = closeText || '算了，自己答';
+    pendingCheatCallback = callback;
+    pendingCloseCallback = closeCallback || null;
+    cheatModal.classList.add('show');
+  }
+
+  function hideCheatModal() {
+    cheatModal.classList.remove('show');
+    pendingCheatCallback = null;
+    pendingCloseCallback = null;
+  }
+
+  cheatModalBtn.addEventListener('click', function () {
+    var cb = pendingCheatCallback;
+    hideCheatModal();
+    if (cb) {
+      showRewardAd(cb);
+    }
+  });
+
+  cheatModalClose.addEventListener('click', function () {
+    var cb = pendingCloseCallback;
+    hideCheatModal();
+    if (cb) cb();
+  });
+
+  // ── 渲染题目 ──
+  function renderQuestions() {
+    var html = '';
+    var currentCat = '';
+    var sectionNames = {
+      rules: '一、规则认知题', history: '二、历史知识题',
+      data: '三、数据记忆题', tactics: '四、战术理解题', trivia: '五、冷知识题'
+    };
+    var sectionScores = {
+      rules: '（本大题共4小题，每小题5分，共20分）',
+      history: '（本大题共4小题，每小题5分，共20分）',
+      data: '（本大题共4小题，每小题5分，共20分）',
+      tactics: '（本大题共4小题，每小题5分，共20分）',
+      trivia: '（本大题共4小题，每小题5分，共20分）'
+    };
+
+    QUESTIONS.forEach(function (q, i) {
+      if (q.category !== currentCat) {
+        currentCat = q.category;
+        html += '<div class="section-header">' + sectionNames[currentCat] +
+          ' <span class="section-score">' + sectionScores[currentCat] + '</span></div>';
+      }
+
+      var hasFig = (q.figure !== undefined && FIGURES[q.figure]);
+      html += '<div class="question-item' + (hasFig ? ' has-figure' : '') + '" data-qi="' + i + '" style="position:relative">';
+      html += '<div class="question-body">';
+      html += '<div class="question-num">' + (i + 1) + '.</div>';
+      html += '<div class="question-text">' + escapeHtml(q.text) + '</div>';
+      html += '<ul class="options-list">';
+      q.options.forEach(function (opt, oi) {
+        html += '<li class="option-item" data-qi="' + i + '" data-oi="' + oi + '">';
+        html += '<span class="option-letter">' + LETTERS[oi] + '</span>';
+        html += '<span class="option-text">' + escapeHtml(opt.text) + '</span>';
+        html += '</li>';
+      });
+      html += '</ul>';
+      html += '</div>';
+      if (hasFig) {
+        html += '<div class="question-figure">' + FIGURES[q.figure] + '<div class="figure-label">（图' + (i + 1) + '）</div></div>';
+      }
+      html += '</div>';
+    });
+
+    questionsContainer.innerHTML = html;
+
+    questionsContainer.addEventListener('click', function (e) {
+      // 抄学霸提示点击
+      var hint = e.target.closest('.cheat-hint');
+      if (hint) {
+        var qi = parseInt(hint.getAttribute('data-qi'));
+        hint.remove();
+        showCheatModal(
+          '抄学霸的答案',
+          '看一段视频，获取第' + (qi + 1) + '题的正确答案',
+          '看视频，抄答案',
+          function () { cheatFillAnswer(qi); }
+        );
+        return;
+      }
+
+      var item = e.target.closest('.option-item');
+      if (!item) return;
+      var qi = parseInt(item.getAttribute('data-qi'));
+      var oi = parseInt(item.getAttribute('data-oi'));
+
+      // 如果之前是抄的，用户重新选择则清除抄的标记
+      if (cheatedQuestions[qi]) {
+        delete cheatedQuestions[qi];
+        var card = item.closest('.question-item');
+        card.querySelectorAll('.option-item.cheated').forEach(function (el) {
+          el.classList.remove('cheated');
+        });
+      }
+
+      selections[qi] = oi;
+
+      var card = item.closest('.question-item');
+      card.querySelectorAll('.option-item').forEach(function (el) {
+        el.classList.toggle('selected', parseInt(el.getAttribute('data-oi')) === oi);
+      });
+      card.classList.add('answered');
+
+      // 移除提示条
+      var existingHint = card.querySelector('.cheat-hint');
+      if (existingHint) existingHint.remove();
+
+      updateProgress();
+      updateAnswerGrid();
+
+      setTimeout(function () {
+        var next = findNextUnanswered(qi);
+        if (next !== -1) {
+          var nextEl = questionsContainer.querySelector('[data-qi="' + next + '"].question-item');
+          if (nextEl) nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 250);
+    });
+  }
+
+  function findNextUnanswered(fromIdx) {
+    for (var i = fromIdx + 1; i < TOTAL; i++) {
+      if (selections[i] === undefined) return i;
+    }
+    for (var j = 0; j < fromIdx; j++) {
+      if (selections[j] === undefined) return j;
+    }
+    return -1;
+  }
+
+  // ── 答题卡 ──
+  function renderAnswerGrid() {
+    var html = '';
+    for (var i = 0; i < TOTAL; i++) {
+      html += '<div class="answer-dot" data-qi="' + i + '">' + (i + 1) + '</div>';
+    }
+    answerGrid.innerHTML = html;
+
+    answerGrid.addEventListener('click', function (e) {
+      var dot = e.target.closest('.answer-dot');
+      if (!dot) return;
+      var qi = parseInt(dot.getAttribute('data-qi'));
+      var el = questionsContainer.querySelector('[data-qi="' + qi + '"].question-item');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 未答题显示"抄学霸的"提示
+        if (selections[qi] === undefined) {
+          showCheatHint(qi, el);
+        }
+      }
+    });
+  }
+
+  function showCheatHint(qi, questionEl) {
+    // 清除之前的提示
+    document.querySelectorAll('.cheat-hint').forEach(function (h) { h.remove(); });
+    if (cheatHintTimer) { clearTimeout(cheatHintTimer); cheatHintTimer = null; }
+
+    var hint = document.createElement('div');
+    hint.className = 'cheat-hint';
+    hint.setAttribute('data-qi', qi);
+    hint.innerHTML = '📝 抄学霸第' + (qi + 1) + '题的答案';
+    questionEl.appendChild(hint);
+
+    cheatHintTimer = setTimeout(function () {
+      if (hint.parentNode) hint.remove();
+    }, 4000);
+  }
+
+  function updateAnswerGrid() {
+    var dots = answerGrid.querySelectorAll('.answer-dot');
+    dots.forEach(function (dot) {
+      var qi = parseInt(dot.getAttribute('data-qi'));
+      dot.classList.remove('filled', 'cheated');
+      if (selections[qi] !== undefined) {
+        dot.textContent = LETTERS[selections[qi]];
+        if (cheatedQuestions[qi]) {
+          dot.classList.add('cheated');
+        } else {
+          dot.classList.add('filled');
+        }
+      } else {
+        dot.textContent = (qi + 1);
+      }
+    });
+  }
+
+  function updateProgress() {
+    var answered = Object.keys(selections).length;
+    progressFill.style.width = (answered / TOTAL * 100) + '%';
+    btnSubmit.disabled = false;
+    if (answered >= TOTAL) {
+      btnSubmit.textContent = '交 卷（' + answered + '/' + TOTAL + '）';
+    } else {
+      btnSubmit.textContent = '交 卷（还剩' + (TOTAL - answered) + '题）';
+    }
+  }
+
+  // ── 交卷逻辑 ──
+  btnSubmit.addEventListener('click', function () {
+    var answered = Object.keys(selections).length;
+
+    // 未答完 → 抄答案弹窗
+    if (answered < TOTAL) {
+      var firstUnanswered = findNextUnanswered(-1);
+      if (firstUnanswered === -1) return;
+      showCheatModal(
+        '还有题没答完！',
+        '看一段视频，抄同学第' + (firstUnanswered + 1) + '题的答案',
+        '看视频，抄答案',
+        function () {
+          cheatFillAnswer(firstUnanswered);
+          var el = questionsContainer.querySelector('[data-qi="' + firstUnanswered + '"].question-item');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      );
+      return;
+    }
+
+    // 全部答完 → 检查是否需要复查
+    var wrongCount = getWrongCount();
+    if (wrongCount > 0 && !reviewUsed) {
+      showCheatModal(
+        '监考老师偷偷提醒你',
+        '你有' + wrongCount + '道题可能答错了，看视频获得一次复查机会',
+        '看视频，获得复查机会',
+        function () {
+          reviewUsed = true;
+          highlightWrongQuestions();
+          showToast('答错的题已标红，快去改答案！');
+        },
+        '不用了，直接交卷',
+        function () { showResult(); }
+      );
+      return;
+    }
+
+    showResult();
+  });
+
+  function getWrongCount() {
+    var count = 0;
+    QUESTIONS.forEach(function (q, i) {
+      if (selections[i] !== undefined) {
+        if (!q.options[selections[i]].correct) count++;
+      }
+    });
+    return count;
+  }
+
+  function highlightWrongQuestions() {
+    QUESTIONS.forEach(function (q, i) {
+      var card = questionsContainer.querySelector('[data-qi="' + i + '"].question-item');
+      if (!card) return;
+      card.classList.remove('review-wrong');
+      if (selections[i] !== undefined && !q.options[selections[i]].correct) {
+        card.classList.add('review-wrong');
+      }
+    });
+    // 滚动到第一个错题
+    var firstWrong = questionsContainer.querySelector('.review-wrong');
+    if (firstWrong) {
+      firstWrong.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  function showResult() {
+    var data = Algorithm.run(selections);
+    var r = data.rank;
+    var score = data.correct * 5;
+
+    pageQuiz.classList.remove('active');
+    pageResult.classList.add('active');
+    document.querySelector('.answer-sheet').style.display = 'none';
+    submitBar.style.display = 'none';
+    window.scrollTo(0, 0);
+
+    document.getElementById('result-score').textContent = score;
+    document.getElementById('result-rank').textContent = r.name;
+    document.getElementById('result-tagline').textContent = '「' + r.tagline + '」';
+    document.getElementById('result-desc').textContent = r.description;
+
+    var stamp = document.getElementById('result-stamp');
+    stamp.classList.remove('animate');
+    void stamp.offsetWidth;
+    stamp.classList.add('animate');
+
+    renderScoreTable(data);
+    renderDetail(data);
+  }
+
+  function renderScoreTable(data) {
+    var tbody = document.getElementById('score-tbody');
+    var html = '';
+    CATEGORY_KEYS.forEach(function (k) {
+      var cat = CATEGORIES[k];
+      var s = data.categoryScores[k];
+      var got = s.correct * 5;
+      var full = s.total * 5;
+      var perfect = s.correct === s.total;
+      html += '<tr>';
+      html += '<td>' + cat.name + '</td>';
+      html += '<td class="score-value ' + (perfect ? 'score-perfect' : '') + '">' + got + '</td>';
+      html += '<td>' + full + '</td>';
+      html += '<td>' + s.pct + '%</td>';
+      html += '</tr>';
+    });
+    var totalScore = data.correct * 5;
+    html += '<tr style="font-weight:700">';
+    html += '<td>总 分</td>';
+    html += '<td class="score-value" style="font-size:18px">' + totalScore + '</td>';
+    html += '<td>100</td>';
+    html += '<td>' + data.pct + '%</td>';
+    html += '</tr>';
+    tbody.innerHTML = html;
+  }
+
+  function renderDetail(data) {
+    var container = document.getElementById('detail-container');
+    var html = '';
+    var currentCat = '';
+    var catNames = { rules: '规则认知', history: '历史知识', data: '数据记忆', tactics: '战术理解', trivia: '冷知识' };
+
+    QUESTIONS.forEach(function (q, i) {
+      if (q.category !== currentCat) {
+        if (currentCat) html += '</div>';
+        currentCat = q.category;
+        html += '<div class="detail-section"><div class="detail-title">' + catNames[currentCat] + '</div>';
+      }
+      var userPick = selections[i];
+      var isCorrect = q.options[userPick] && q.options[userPick].correct;
+      var correctIdx = q.options.findIndex(function (o) { return o.correct; });
+      var wasCheated = cheatedQuestions[i];
+      var icon = wasCheated ? '📝' : (isCorrect ? '✓' : '✗');
+      var cls = wasCheated ? 'detail-correct' : (isCorrect ? 'detail-correct' : 'detail-wrong');
+
+      html += '<div class="detail-item">';
+      html += '<span class="' + cls + '">' + icon + '</span> ';
+      html += (i + 1) + '. ' + escapeHtml(q.text);
+      html += ' <span class="' + cls + '">（你选' + LETTERS[userPick];
+      if (wasCheated) html += '·抄的';
+      html += '）</span>';
+      if (!isCorrect) {
+        html += '<div class="detail-answer">正确答案：' + LETTERS[correctIdx] + '. ' + escapeHtml(q.options[correctIdx].text) + '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // ── 重考 ──
+  document.getElementById('btn-retry').addEventListener('click', function () {
+    selections = {};
+    cheatedQuestions = {};
+    reviewUsed = false;
+    pageResult.classList.remove('active');
+    pageQuiz.classList.add('active');
+    document.querySelector('.answer-sheet').style.display = '';
+    submitBar.style.display = '';
+    window.scrollTo(0, 0);
+    document.getElementById('exam-id').textContent = '2026' + Math.floor(10000000 + Math.random() * 90000000);
+    document.getElementById('seat-id').textContent = Math.floor(1 + Math.random() * 30);
+    questionsContainer.querySelectorAll('.option-item.selected').forEach(function (el) { el.classList.remove('selected'); });
+    questionsContainer.querySelectorAll('.option-item.cheated').forEach(function (el) { el.classList.remove('cheated'); });
+    questionsContainer.querySelectorAll('.question-item.answered').forEach(function (el) { el.classList.remove('answered'); });
+    questionsContainer.querySelectorAll('.question-item.review-wrong').forEach(function (el) { el.classList.remove('review-wrong'); });
+    document.querySelectorAll('.cheat-hint').forEach(function (h) { h.remove(); });
+    updateAnswerGrid();
+    updateProgress();
+  });
+
+  // ── 分享 ──
+  document.getElementById('btn-share').addEventListener('click', function () {
+    generateShareCard();
+  });
+
+  function generateShareCard() {
+    var canvas = document.getElementById('share-canvas');
+    var ctx = canvas.getContext('2d');
+    var W = 640, H = 900;
+    canvas.width = W;
+    canvas.height = H;
+
+    var data = Algorithm.run(selections);
+    var r = data.rank;
+    var score = data.correct * 5;
+
+    ctx.fillStyle = '#f5f0e8';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+    ctx.lineWidth = 1;
+    for (var y = 0; y < H; y += 32) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    ctx.fillStyle = '#cc0000';
+    ctx.fillRect(0, 0, W, 4);
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#666';
+    ctx.font = '20px "Songti SC", serif';
+    ctx.fillText('2026年全国足球统一考试', W / 2, 50);
+
+    ctx.fillStyle = '#cc0000';
+    ctx.font = 'bold 28px "Songti SC", serif';
+    ctx.fillText('成 绩 报 告 单', W / 2, 90);
+
+    ctx.save();
+    ctx.translate(W / 2, 210);
+    ctx.rotate(-0.14);
+    ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI * 2);
+    ctx.strokeStyle = '#cc0000'; ctx.lineWidth = 4; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, 78, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(204,0,0,0.3)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#cc0000';
+    ctx.font = 'bold 52px "Songti SC", serif';
+    ctx.fillText(score, 0, 16);
+    ctx.font = '14px "Songti SC", serif';
+    ctx.fillText('分', 0, 40);
+    ctx.restore();
+
+    ctx.fillStyle = '#cc0000';
+    ctx.font = 'bold 26px "Songti SC", serif';
+    ctx.fillText('【' + r.name + '】', W / 2, 330);
+
+    ctx.fillStyle = '#333';
+    ctx.font = 'italic 20px "Songti SC", serif';
+    ctx.fillText('「' + r.tagline + '」', W / 2, 365);
+
+    var tableY = 410;
+    var colX = [100, 260, 380, 520];
+    var headers = ['题型', '得分', '满分', '正确率'];
+
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    ctx.fillRect(60, tableY - 20, W - 120, 32);
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 16px "Songti SC", serif';
+    ctx.textAlign = 'center';
+    headers.forEach(function (h, i) { ctx.fillText(h, colX[i], tableY); });
+
+    ctx.font = '15px "Songti SC", serif';
+    CATEGORY_KEYS.forEach(function (k, i) {
+      var cat = CATEGORIES[k];
+      var s = data.categoryScores[k];
+      var y = tableY + 36 + i * 32;
+      ctx.fillStyle = '#333';
+      ctx.fillText(cat.name, colX[0], y);
+      ctx.fillStyle = s.correct === s.total ? '#cc0000' : '#333';
+      ctx.font = 'bold 16px "Songti SC", serif';
+      ctx.fillText(s.correct * 5 + '', colX[1], y);
+      ctx.fillStyle = '#999';
+      ctx.font = '15px "Songti SC", serif';
+      ctx.fillText(s.total * 5 + '', colX[2], y);
+      ctx.fillText(s.pct + '%', colX[3], y);
+    });
+
+    var totalY = tableY + 36 + 5 * 32;
+    ctx.fillStyle = 'rgba(0,0,0,0.04)';
+    ctx.fillRect(60, totalY - 18, W - 120, 30);
+    ctx.fillStyle = '#333';
+    ctx.font = 'bold 16px "Songti SC", serif';
+    ctx.fillText('总分', colX[0], totalY);
+    ctx.fillStyle = '#cc0000';
+    ctx.font = 'bold 20px "Songti SC", serif';
+    ctx.fillText(score + '', colX[1], totalY);
+    ctx.fillStyle = '#999';
+    ctx.font = '15px "Songti SC", serif';
+    ctx.fillText('100', colX[2], totalY);
+    ctx.fillText(data.pct + '%', colX[3], totalY);
+
+    var cheatedCount = Object.keys(cheatedQuestions).length;
+    if (cheatedCount > 0) {
+      ctx.fillStyle = '#2e7d32';
+      ctx.font = '14px "Songti SC", serif';
+      ctx.fillText('（其中' + cheatedCount + '题为抄学霸答案）', W / 2, totalY + 30);
+    }
+
+    ctx.fillStyle = '#bbb';
+    ctx.font = '14px "Songti SC", serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('全国足球统一考试委员会（盖章）', W / 2, H - 60);
+    ctx.fillText('懂球帝出品', W / 2, H - 35);
+
+    document.getElementById('share-modal').classList.add('show');
+  }
+
+  document.getElementById('btn-save-card').addEventListener('click', function () {
+    var canvas = document.getElementById('share-canvas');
+    var link = document.createElement('a');
+    link.download = '足球高考成绩单.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  document.getElementById('btn-close-modal').addEventListener('click', function () {
+    document.getElementById('share-modal').classList.remove('show');
+  });
+
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    setTimeout(function () { toastEl.classList.remove('show'); }, 2000);
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+})();
+  </script>
+</body>
+</html>
