@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>2026年全国足球统一考试</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ====== 答题页 ====== -->
+  <div id="page-quiz" class="page active">
+    <div class="progress-strip">
+      <div id="progress-fill" class="progress-strip-fill" style="width:0%"></div>
+    </div>
+
+    <!-- 左侧答题卡栏 -->
+    <div class="answer-sheet">
+      <div class="answer-sheet-title">答题卡</div>
+      <div id="answer-grid" class="answer-grid"></div>
+    </div>
+
+    <div class="paper">
+      <!-- 试卷头 -->
+      <div class="exam-header">
+        <div class="exam-year">2026年（全国卷）</div>
+        <div class="exam-title">全国足球统一考试</div>
+        <div class="exam-subtitle">足球学科 知识水平测试卷</div>
+        <div class="exam-stars">★ ★ ★ ★ ★</div>
+        <div class="exam-info">
+          <div class="exam-info-item">准考证号：<span class="blank" id="exam-id"></span></div>
+          <div class="exam-info-item">座位号：<span class="blank" id="seat-id"></span></div>
+        </div>
+      </div>
+
+      <!-- 注意事项 -->
+      <div class="exam-notice">
+        <div class="exam-notice-title">注意事项：</div>
+        1. 本试卷共20小题，满分100分，考试时间不限。<br>
+        2. 每小题5分，共五个大题，每大题4小题。<br>
+        3. 请用手指在选项上作答，涂改无效。<br>
+        4. 考试期间禁止查阅懂球帝APP（开玩笑的）。
+      </div>
+
+      <!-- 题目容器 -->
+      <div id="questions-container"></div>
+    </div>
+
+    <!-- 吸底交卷栏 -->
+    <div class="submit-bar" id="submit-bar">
+      <button id="btn-submit" class="btn-submit" disabled>交 卷</button>
+    </div>
+  </div>
+
+  <!-- ====== 激励视频Mock弹窗 ====== -->
+  <div id="reward-ad-modal" class="reward-ad-modal">
+    <div class="reward-ad-inner">
+      <div class="reward-ad-label">广告</div>
+      <div class="reward-ad-body">
+        <div class="reward-ad-icon">📺</div>
+        <div class="reward-ad-text">正在加载激励视频...</div>
+        <div class="reward-ad-countdown" id="reward-countdown">3</div>
+      </div>
+      <div class="reward-ad-progress">
+        <div class="reward-ad-progress-fill" id="reward-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 抄答案弹窗 ====== -->
+  <div id="cheat-modal" class="cheat-modal">
+    <div class="cheat-modal-inner">
+      <div class="cheat-modal-title" id="cheat-modal-title"></div>
+      <div class="cheat-modal-desc" id="cheat-modal-desc"></div>
+      <button class="cheat-modal-btn" id="cheat-modal-btn">看视频，抄答案</button>
+      <button class="cheat-modal-close" id="cheat-modal-close">算了，自己答</button>
+    </div>
+  </div>
+
+  <!-- ====== Toast ====== -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ====== 结果页 ====== -->
+  <div id="page-result" class="page">
+    <div class="paper">
+      <div class="result-header">
+        <div class="exam-year">2026年全国足球统一考试</div>
+        <div class="result-title">成 绩 报 告 单</div>
+      </div>
+
+      <div class="stamp animate" id="result-stamp">
+        <div class="stamp-score" id="result-score"></div>
+        <div class="stamp-label">分</div>
+      </div>
+
+      <div class="rank-section">
+        <div class="rank-badge" id="result-rank"></div>
+        <div class="rank-tagline" id="result-tagline"></div>
+      </div>
+
+      <div class="rank-desc" id="result-desc"></div>
+
+      <!-- 分类成绩 -->
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>题型</th>
+            <th>得分</th>
+            <th>满分</th>
+            <th>正确率</th>
+          </tr>
+        </thead>
+        <tbody id="score-tbody"></tbody>
+      </table>
+
+      <!-- 答题详情 -->
+      <div id="detail-container"></div>
+
+      <div class="result-footer">
+        <button id="btn-retry" class="btn-retry">重 考</button>
+        <button id="btn-share" class="btn-share-card">生成成绩单</button>
+      </div>
+    </div>
+
+    <!-- 分享弹窗 -->
+    <div id="share-modal" class="share-modal">
+      <div class="share-modal-inner">
+        <canvas id="share-canvas"></canvas>
+        <button id="btn-save-card" class="btn-save">保存成绩单</button>
+        <button id="btn-close-modal" class="btn-close-modal">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/questions.js"></script>
+  <script src="js/results.js"></script>
+  <script src="js/algorithm.js"></script>
+  <script src="js/unified-reward-bridge.js"></script>
+  <script src="js/reward-sdk.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
