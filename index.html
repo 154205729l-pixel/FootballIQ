@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>2026年全国足球统一考试 [TEST]</title>
+  <title>2026年全国足球统一考试</title>
   <script>
   window.addEventListener('pageshow', function(e) {
     if (e.persisted) { location.reload(); }
@@ -791,39 +791,9 @@ html, body {
   .btn-submit { padding: 4px 0; font-size: 8px; }
 }
 
-/* ====== 测试浮窗 ====== */
-#debug-panel {
-  position: fixed; top: 0; right: 0; z-index: 9999;
-  width: 100%; max-height: 35vh; overflow-y: auto;
-  background: rgba(0,0,0,0.85); color: #0f0;
-  font-size: 11px; font-family: "Courier New", monospace;
-  padding: 6px 8px; line-height: 1.5;
-  display: none; white-space: pre-wrap; word-break: break-all;
-  -webkit-overflow-scrolling: touch;
-}
-#debug-panel.show { display: block; }
-#debug-toggle {
-  position: fixed; top: 4px; right: 4px; z-index: 10000;
-  width: 36px; height: 36px; border-radius: 50%;
-  background: rgba(255,0,0,0.7); color: #fff;
-  font-size: 10px; font-weight: 700; border: none;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-family: monospace;
-}
-#test-badge {
-  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-  z-index: 9999; background: #cc0000; color: #fff;
-  font-size: 10px; padding: 2px 10px; border-radius: 10px;
-  font-family: monospace; opacity: 0.7; pointer-events: none;
-}
   </style>
 </head>
 <body>
-
-  <!-- 测试标识 -->
-  <div id="test-badge">TEST v1.2 · app-first</div>
-  <button id="debug-toggle">LOG</button>
-  <div id="debug-panel"></div>
 
   <div id="page-quiz" class="page active">
     <div class="progress-strip">
@@ -837,7 +807,7 @@ html, body {
       <div class="exam-header">
         <div class="exam-year">2026年（全国卷）</div>
         <div class="exam-title">全国足球统一考试</div>
-        <div class="exam-subtitle">足球学科 知识水平测试卷</div>
+        <div class="exam-subtitle">你懂球吗？</div>
         <div class="exam-stars">★ ★ ★ ★ ★</div>
         <div class="exam-info">
           <div class="exam-info-item">准考证号：<span class="blank" id="exam-id"></span></div>
@@ -916,68 +886,6 @@ html, body {
       </div>
     </div>
   </div>
-
-  <!-- ====== 调试日志系统 ====== -->
-  <script>
-(function(){
-  var panel = document.getElementById('debug-panel');
-  var toggle = document.getElementById('debug-toggle');
-  var logs = [];
-  var MAX = 200;
-
-  function ts() {
-    var d = new Date();
-    return [d.getHours(),d.getMinutes(),d.getSeconds()].map(function(n){return n<10?'0'+n:n}).join(':') + '.' + ('00'+d.getMilliseconds()).slice(-3);
-  }
-
-  function addLog(level, args) {
-    var msg = ts() + ' [' + level + '] ';
-    for (var i = 0; i < args.length; i++) {
-      var a = args[i];
-      if (typeof a === 'object') {
-        try { msg += JSON.stringify(a); } catch(e) { msg += String(a); }
-      } else {
-        msg += String(a);
-      }
-      if (i < args.length - 1) msg += ' ';
-    }
-    logs.push(msg);
-    if (logs.length > MAX) logs.shift();
-    if (panel.classList.contains('show')) {
-      panel.textContent = logs.join('\n');
-      panel.scrollTop = panel.scrollHeight;
-    }
-  }
-
-  var origLog = console.log;
-  var origWarn = console.warn;
-  var origError = console.error;
-
-  console.log = function() { origLog.apply(console, arguments); addLog('LOG', arguments); };
-  console.warn = function() { origWarn.apply(console, arguments); addLog('WRN', arguments); };
-  console.error = function() { origError.apply(console, arguments); addLog('ERR', arguments); };
-
-  window.addEventListener('error', function(e) {
-    addLog('ERR', ['Uncaught: ' + e.message + ' @ ' + (e.filename||'') + ':' + (e.lineno||'')]);
-  });
-  window.addEventListener('unhandledrejection', function(e) {
-    addLog('ERR', ['UnhandledRejection: ' + (e.reason && e.reason.message || e.reason)]);
-  });
-
-  toggle.addEventListener('click', function() {
-    panel.classList.toggle('show');
-    if (panel.classList.contains('show')) {
-      panel.textContent = logs.join('\n');
-      panel.scrollTop = panel.scrollHeight;
-    }
-  });
-
-  console.log('=== TEST BUILD v1.2 app-first ===');
-  console.log('UA:', navigator.userAgent);
-  console.log('URL:', location.href);
-  console.log('Screen:', screen.width + 'x' + screen.height, 'DPR:', window.devicePixelRatio);
-})();
-  </script>
 
   <!-- 数据和算法（小文件，先加载） -->
   <script>
